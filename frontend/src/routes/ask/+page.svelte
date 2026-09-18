@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { api, getPersona } from '$lib/api';
 	import { COPY } from '$lib/copy';
 	import Latency from '$lib/Latency.svelte';
@@ -9,6 +10,11 @@
 	let text = $state('');
 	let res = $state<any>(null);
 	let busy = $state(false);
+
+	onMount(() => {
+		const q = new URLSearchParams(location.search).get('q');
+		if (q) send(q);
+	});
 
 	async function send(q?: string) {
 		if (q) text = q;

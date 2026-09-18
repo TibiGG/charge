@@ -40,6 +40,7 @@
 		uploading = false;
 	}
 
+	const low = $derived(data?.batteries?.find((b: any) => b.id === data.emptiest));
 	const sayAll = $derived(data ? [COPY.tagline,
 		...data.batteries.map((b: any) => `${COPY.batteries[b.id as BatteryId].label}: ${COPY.bands[b.band.key as keyof typeof COPY.bands]}.`),
 		COPY.noStreak].join(' ') : '');
@@ -68,6 +69,8 @@
 			<h1>{COPY.tagline}</h1>
 			<Latency clientMs={data.clientMs} timings={data.timings_ms} />
 		</div>
+		{#if low}<p class="charge-line">{COPY.chargeSetBy} <strong>{COPY.batteries[low.id as BatteryId].label}</strong>
+			<span class="muted">({COPY.bands[low.band.key as keyof typeof COPY.bands]})</span>.</p>{/if}
 		<p class="lede">{COPY.noStreak}</p>
 		<Speak text={sayAll} />
 	</section>

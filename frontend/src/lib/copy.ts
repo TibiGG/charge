@@ -7,6 +7,7 @@ export const COPY = {
 	noStreak: "There's no streak to break here. Each battery looks at the last 7 days.",
 	primaryToday: 'What should I do today?',
 	chargeLabel: 'Your charge',
+	chargeSetBy: 'Right now, your charge is set by',
 	tapVial: 'Tap a battery to learn more.',
 
 	bands: {
