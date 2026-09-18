@@ -14,10 +14,10 @@ Open **http://localhost:5173/?p=margaret**. Before going on stage, reset any liv
 
 **0:00 Batteries (`/`), Margaret, 54**
 - "Margaret has a Bupa MY Genomic Health report and an Apple Watch. These are her five batteries."
-- Point at **Stamina: Topped up**. She spins three times a week.
+- Point at **Cardio endurance: Topped up**. She spins three times a week.
 - "Her charge is set by her **emptiest** battery, not her average. Spin can't make up for zero strength work."
 - "There's no streak to break. Each battery covers the last 7 days, so a sick week doesn't punish you."
-- Tap **Suppleness**. The sheet says "This aim is our weakest one" and the source chip reads **COMMERCIAL PROTOCOL**.
+- Tap **Flexibility & mobility**. The sheet says "This aim is our weakest one" and the source chip reads **COMMERCIAL PROTOCOL**.
   "We show that openly. It proves the source tracking is real."
 - Close the sheet. Tap **Read aloud** (lands well).
 

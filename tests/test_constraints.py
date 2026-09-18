@@ -208,9 +208,23 @@ def test_generated_sentences_reading_grade(outputs):
     assert grade <= 6, grade
 
 
+BATTERY_LABELS = {t["label"] for t in TARGETS.values()}
+
+
+def test_battery_labels_follow_blueprint_taxonomy():
+    # Labels use the Blueprint five-pillar names (src_blueprint_flex); thresholds stay WHO/ROS.
+    assert [TARGETS[b]["label"] for b in ("strength", "cardio", "peak", "balance", "mobility")] == [
+        "Strength", "Cardio endurance", "HIIT / VO2max", "Balance & stability", "Flexibility & mobility"]
+    copy = (ROOT / "frontend/src/lib/copy.ts").read_text()
+    for label in BATTERY_LABELS:
+        assert f"label: '{label}'" in copy, label
+
+
 def test_no_jargon_in_ui():
+    # Battery names are a deliberate product choice (Blueprint taxonomy) and are exempt;
+    # every explanation around them must stay plain.
     jargon = ["vo2", "bone mineral density", "bmd", "polygenic", "prs", "aerobic", "sedentary", "musculoskeletal"]
-    for s in _copy_strings() + [r["head"] for r in engine.RULES.values()]:
+    for s in [c for c in _copy_strings() if c not in BATTERY_LABELS] + [r["head"] for r in engine.RULES.values()]:
         for j in jargon:
             assert not re.search(rf"\b{re.escape(j)}\b", s.lower()), (j, s)
 

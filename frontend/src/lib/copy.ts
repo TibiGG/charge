@@ -23,22 +23,22 @@ export const COPY = {
 			examples: 'Weights, squats, or carrying heavy bags all count.'
 		},
 		cardio: {
-			label: 'Stamina',
+			label: 'Cardio endurance',
 			what: 'This is activity that warms you up and makes you breathe a bit faster.',
 			examples: 'A brisk walk, a bike ride or a swim all count.'
 		},
 		peak: {
-			label: 'Peak effort',
+			label: 'HIIT / VO2max',
 			what: 'This is hard effort. You can only say a few words at a time.',
 			examples: 'Running, fast cycling or a hard class all count.'
 		},
 		balance: {
-			label: 'Steadiness',
+			label: 'Balance & stability',
 			what: 'This is balance work. It helps you stay steady on your feet.',
 			examples: 'Tai chi, standing on one leg, or heel-to-toe walking all count.'
 		},
 		mobility: {
-			label: 'Suppleness',
+			label: 'Flexibility & mobility',
 			what: 'This is stretching. It helps you move with ease.',
 			examples: 'Yoga, pilates or a gentle stretch all count.'
 		}

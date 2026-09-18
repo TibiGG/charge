@@ -42,16 +42,16 @@ older_adult(P) :- age(P, A), A >= 65.
 0.80::recommend(P, balance_work, r_balance_older) :-
     under_target(P, balance), older_adult(P).
 
-% Stamina
+% Cardio endurance
 0.80::recommend(P, brisk_cardio, r_cardio_who) :- under_target(P, cardio).
 0.85::recommend(P, brisk_cardio, r_cardio_fto) :-
     under_target(P, cardio), shifted(P, cardiometabolic).
 
-% Peak effort — WHO treats vigorous minutes as an alternative route to the
+% HIIT / VO2max — WHO treats vigorous minutes as an alternative route to the
 % aerobic target, so only suggest it when that target is not already met.
 0.60::recommend(P, intervals, r_peak_who) :- under_target(P, peak), under_target(P, cardio).
 
-% Suppleness — weakest evidence (commercial protocol), so a low weight.
+% Flexibility & mobility — weakest evidence (commercial protocol), so a low weight.
 0.40::recommend(P, stretch_flow, r_mobility_blueprint) :- under_target(P, mobility).
 
 % Noisy-or across every reason for the same action.
