@@ -7,3 +7,4 @@ build/
 .DS_Store
 data/apple_health/*.zip
 data/apple_health/export_full.xml
+.recording/
