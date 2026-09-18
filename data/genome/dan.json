@@ -1,0 +1,28 @@
+{
+ "report_id": "MGH-2026-DAN-0001",
+ "issued_date": "2026-09-12",
+ "source_id": "src_bupa_genomic",
+ "panels": [
+  {
+   "condition": "osteoporosis",
+   "prs_band": "average",
+   "percentile": 35,
+   "variants": [],
+   "interpretation_source_id": "src_bupa_genomic"
+  },
+  {
+   "condition": "cardiometabolic",
+   "prs_band": "high",
+   "percentile": 88,
+   "variants": [
+    {
+     "rsid": "rs9939609",
+     "gene": "FTO",
+     "genotype": "AA",
+     "effect_direction": "higher_bmi"
+    }
+   ],
+   "interpretation_source_id": "src_frayling_fto_2007"
+  }
+ ]
+}

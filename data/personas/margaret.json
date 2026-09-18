@@ -1,0 +1,157 @@
+{
+ "id": "margaret",
+ "name": "Margaret",
+ "age": 54,
+ "sex": "female",
+ "menopause_status": "post",
+ "habits": [
+  "spin",
+  "yoga"
+ ],
+ "as_of": "2026-09-18",
+ "watch_connected": true,
+ "genome_report": "margaret.json",
+ "calendar": "default.json",
+ "workouts": [
+  {
+   "type": "Yoga",
+   "start": "2026-09-05T09:00:00",
+   "duration_min": 40,
+   "mean_hr": 92
+  },
+  {
+   "type": "Walking",
+   "start": "2026-09-06T10:00:00",
+   "duration_min": 30,
+   "mean_hr": 104
+  },
+  {
+   "type": "CoreTraining",
+   "start": "2026-09-06T18:00:00",
+   "duration_min": 25,
+   "mean_hr": 110
+  },
+  {
+   "type": "Cycling",
+   "start": "2026-09-07T07:00:00",
+   "duration_min": 50,
+   "mean_hr": 124
+  },
+  {
+   "type": "Cycling",
+   "start": "2026-09-09T07:00:00",
+   "duration_min": 40,
+   "mean_hr": 146
+  },
+  {
+   "type": "Cycling",
+   "start": "2026-09-11T07:00:00",
+   "duration_min": 50,
+   "mean_hr": 122
+  },
+  {
+   "type": "Yoga",
+   "start": "2026-09-12T09:00:00",
+   "duration_min": 40,
+   "mean_hr": 92
+  },
+  {
+   "type": "Walking",
+   "start": "2026-09-13T10:00:00",
+   "duration_min": 30,
+   "mean_hr": 104
+  },
+  {
+   "type": "Cycling",
+   "start": "2026-09-14T07:00:00",
+   "duration_min": 50,
+   "mean_hr": 124
+  },
+  {
+   "type": "Cycling",
+   "start": "2026-09-16T07:00:00",
+   "duration_min": 40,
+   "mean_hr": 146
+  },
+  {
+   "type": "Cycling",
+   "start": "2026-09-18T07:00:00",
+   "duration_min": 50,
+   "mean_hr": 122
+  }
+ ],
+ "daily": [
+  {
+   "date": "2026-09-05",
+   "steps": 7968,
+   "sleep_hours": 6.7
+  },
+  {
+   "date": "2026-09-06",
+   "steps": 8005,
+   "sleep_hours": 6.1
+  },
+  {
+   "date": "2026-09-07",
+   "steps": 8042,
+   "sleep_hours": 6.25
+  },
+  {
+   "date": "2026-09-08",
+   "steps": 8079,
+   "sleep_hours": 6.4
+  },
+  {
+   "date": "2026-09-09",
+   "steps": 8116,
+   "sleep_hours": 6.55
+  },
+  {
+   "date": "2026-09-10",
+   "steps": 8153,
+   "sleep_hours": 6.7
+  },
+  {
+   "date": "2026-09-11",
+   "steps": 8190,
+   "sleep_hours": 6.1
+  },
+  {
+   "date": "2026-09-12",
+   "steps": 8227,
+   "sleep_hours": 6.25
+  },
+  {
+   "date": "2026-09-13",
+   "steps": 8264,
+   "sleep_hours": 6.4
+  },
+  {
+   "date": "2026-09-14",
+   "steps": 7401,
+   "sleep_hours": 6.55
+  },
+  {
+   "date": "2026-09-15",
+   "steps": 7438,
+   "sleep_hours": 6.7
+  },
+  {
+   "date": "2026-09-16",
+   "steps": 7475,
+   "sleep_hours": 6.1
+  },
+  {
+   "date": "2026-09-17",
+   "steps": 7512,
+   "sleep_hours": 6.25
+  },
+  {
+   "date": "2026-09-18",
+   "steps": 7549,
+   "sleep_hours": 6.4
+  }
+ ],
+ "vo2max": 31.2,
+ "resting_hr": 62
+}

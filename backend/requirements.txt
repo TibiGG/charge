@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+problog
+lxml
+textstat
+pytest
+httpx
+python-multipart

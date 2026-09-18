@@ -1,0 +1,28 @@
+{
+ "report_id": "MGH-2026-MAR-0001",
+ "issued_date": "2026-09-12",
+ "source_id": "src_bupa_genomic",
+ "panels": [
+  {
+   "condition": "osteoporosis",
+   "prs_band": "high",
+   "percentile": 91,
+   "variants": [
+    {
+     "rsid": "rs1800012",
+     "gene": "COL1A1",
+     "genotype": "GT",
+     "effect_direction": "lower_bone_density"
+    }
+   ],
+   "interpretation_source_id": "src_genomos_col1a1"
+  },
+  {
+   "condition": "cardiometabolic",
+   "prs_band": "average",
+   "percentile": 48,
+   "variants": [],
+   "interpretation_source_id": "src_bupa_genomic"
+  }
+ ]
+}

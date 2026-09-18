@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+node_modules/
+.svelte-kit/
+build/
+*.pyc
+.DS_Store
+data/apple_health/*.zip
+data/apple_health/export_full.xml

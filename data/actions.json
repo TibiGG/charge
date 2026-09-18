@@ -1,0 +1,11 @@
+{
+  "strength_training": {"name": "A short strength session", "batteries": ["strength"], "minutes": 20, "default_for": "strength"},
+  "impact_loading":    {"name": "A bone-loading strength session", "batteries": ["strength"], "minutes": 20},
+  "power_yoga":        {"name": "Power yoga with small hops", "batteries": ["strength", "balance"], "minutes": 25, "supersedes": ["impact_loading", "strength_training"]},
+  "balance_work":      {"name": "Balance practice", "batteries": ["balance"], "minutes": 15, "default_for": "balance"},
+  "balance_walk":      {"name": "Your daily walk, with balance moves", "batteries": ["balance"], "minutes": 25, "supersedes": ["balance_work"]},
+  "brisk_cardio":      {"name": "A brisk walk or ride", "batteries": ["cardio"], "minutes": 30, "default_for": "cardio"},
+  "lift_then_ride":    {"name": "Weights, then a 20 minute ride", "batteries": ["cardio"], "minutes": 20, "supersedes": ["brisk_cardio"]},
+  "intervals":         {"name": "Short bursts of hard effort", "batteries": ["peak", "cardio"], "minutes": 20, "default_for": "peak"},
+  "stretch_flow":      {"name": "A gentle stretch", "batteries": ["mobility"], "minutes": 15, "default_for": "mobility"}
+}

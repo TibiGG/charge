@@ -1,0 +1,16 @@
+{
+ "id": "sam",
+ "name": "Sam",
+ "age": 45,
+ "sex": "male",
+ "menopause_status": null,
+ "habits": [],
+ "as_of": "2026-09-18",
+ "watch_connected": false,
+ "genome_report": "sam.json",
+ "calendar": "default.json",
+ "workouts": [],
+ "daily": [],
+ "vo2max": null,
+ "resting_hr": null
+}

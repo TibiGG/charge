@@ -1,0 +1,9 @@
+{
+  "strength": {"label": "Strength",    "metric": "strength_days_per_week",  "target": 2,   "unit": "days a week",     "source_id": "src_who_2020_strength"},
+  "cardio":   {"label": "Stamina",     "metric": "moderate_equiv_min_per_week", "target": 150, "unit": "minutes a week", "source_id": "src_who_2020_aerobic"},
+  "peak":     {"label": "Peak effort", "metric": "vigorous_min_per_week",   "target": 75,  "unit": "minutes a week",  "source_id": "src_who_2020_vigorous"},
+  "balance":  {"label": "Steadiness",  "metric": "balance_days_per_week",   "target": 3,   "unit": "days a week",     "source_id": "src_who_2020_balance"},
+  "mobility": {"label": "Suppleness",  "metric": "mobility_days_per_week",  "target": 3,   "unit": "days a week",     "source_id": "src_blueprint_flex",
+               "low_confidence": true, "placeholder": true,
+               "note": "TODO(source): no clinical guideline gives a flexibility target. 3 days/wk is a placeholder, not a sourced number."}
+}

@@ -1,0 +1,150 @@
+{
+ "id": "dan",
+ "name": "Dan",
+ "age": 36,
+ "sex": "male",
+ "menopause_status": null,
+ "habits": [
+  "weights"
+ ],
+ "as_of": "2026-09-18",
+ "watch_connected": true,
+ "genome_report": "dan.json",
+ "calendar": "default.json",
+ "workouts": [
+  {
+   "type": "TraditionalStrengthTraining",
+   "start": "2026-09-07T18:00:00",
+   "duration_min": 60,
+   "mean_hr": 112
+  },
+  {
+   "type": "Walking",
+   "start": "2026-09-08T13:00:00",
+   "duration_min": 15,
+   "mean_hr": 98
+  },
+  {
+   "type": "TraditionalStrengthTraining",
+   "start": "2026-09-09T18:00:00",
+   "duration_min": 60,
+   "mean_hr": 112
+  },
+  {
+   "type": "Walking",
+   "start": "2026-09-10T13:00:00",
+   "duration_min": 15,
+   "mean_hr": 98
+  },
+  {
+   "type": "TraditionalStrengthTraining",
+   "start": "2026-09-11T18:00:00",
+   "duration_min": 60,
+   "mean_hr": 112
+  },
+  {
+   "type": "TraditionalStrengthTraining",
+   "start": "2026-09-14T18:00:00",
+   "duration_min": 60,
+   "mean_hr": 112
+  },
+  {
+   "type": "Walking",
+   "start": "2026-09-15T13:00:00",
+   "duration_min": 15,
+   "mean_hr": 98
+  },
+  {
+   "type": "TraditionalStrengthTraining",
+   "start": "2026-09-16T18:00:00",
+   "duration_min": 60,
+   "mean_hr": 112
+  },
+  {
+   "type": "Walking",
+   "start": "2026-09-17T13:00:00",
+   "duration_min": 15,
+   "mean_hr": 98
+  },
+  {
+   "type": "TraditionalStrengthTraining",
+   "start": "2026-09-18T18:00:00",
+   "duration_min": 60,
+   "mean_hr": 112
+  }
+ ],
+ "daily": [
+  {
+   "date": "2026-09-05",
+   "steps": 4668,
+   "sleep_hours": 6.2
+  },
+  {
+   "date": "2026-09-06",
+   "steps": 4705,
+   "sleep_hours": 5.6
+  },
+  {
+   "date": "2026-09-07",
+   "steps": 4742,
+   "sleep_hours": 5.75
+  },
+  {
+   "date": "2026-09-08",
+   "steps": 4779,
+   "sleep_hours": 5.9
+  },
+  {
+   "date": "2026-09-09",
+   "steps": 4816,
+   "sleep_hours": 6.05
+  },
+  {
+   "date": "2026-09-10",
+   "steps": 4853,
+   "sleep_hours": 6.2
+  },
+  {
+   "date": "2026-09-11",
+   "steps": 4890,
+   "sleep_hours": 5.6
+  },
+  {
+   "date": "2026-09-12",
+   "steps": 4927,
+   "sleep_hours": 5.75
+  },
+  {
+   "date": "2026-09-13",
+   "steps": 4964,
+   "sleep_hours": 5.9
+  },
+  {
+   "date": "2026-09-14",
+   "steps": 4101,
+   "sleep_hours": 6.05
+  },
+  {
+   "date": "2026-09-15",
+   "steps": 4138,
+   "sleep_hours": 6.2
+  },
+  {
+   "date": "2026-09-16",
+   "steps": 4175,
+   "sleep_hours": 5.6
+  },
+  {
+   "date": "2026-09-17",
+   "steps": 4212,
+   "sleep_hours": 5.75
+  },
+  {
+   "date": "2026-09-18",
+   "steps": 4249,
+   "sleep_hours": 5.9
+  }
+ ],
+ "vo2max": 38.5,
+ "resting_hr": 70
+}
