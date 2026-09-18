@@ -157,6 +157,31 @@ export const COPY = {
 		seatedWhy: 'You picked the seated one. It works the same batteries, so the reasons below still hold.'
 	},
 
+	welcome: {
+		title: 'Welcome to Charge',
+		intro: 'Two quick steps. Then we can suggest one thing for each part of your day.',
+		step1: 'Step 1: Your account',
+		bupa: 'Sign in with Bupa',
+		google: 'Continue with Google',
+		email: 'Use my email',
+		emailLabel: 'Your email',
+		emailGo: 'Send me a sign-in link',
+		signingIn: 'Signing you in…',
+		signedIn: "You're in.",
+		signedInWith: 'Signed in with',
+		step2: 'Step 2: Your watch or tracker',
+		step2Intro: 'We use it to fill your batteries. Nothing is shared without your say.',
+		connect: 'Connect',
+		connecting: 'Connecting…',
+		connected: 'Connected.',
+		found: 'We found 14 days of workouts and sleep.',
+		step3: "You're all set",
+		kit: 'Tell us what kit you have',
+		go: 'See my batteries',
+		startOver: 'Start again',
+		demoNote: 'This is a prototype. Sign-in and connecting are simulated. Nothing is sent.'
+	},
+
 	activity: {
 		title: 'Your activity',
 		intro: 'Everything that fills your batteries. It comes from your watch, or you can add it.',
@@ -240,7 +265,7 @@ export const COPY = {
 	},
 	genetic: "This nudges your starting point. It doesn't tell you what will happen.",
 	latency: 'Time to answer',
-	nav: { home: 'Batteries', today: 'Today', ask: 'Ask', activity: 'Activity', user: 'User' }
+	nav: { welcome: 'Welcome', home: 'Batteries', today: 'Today', ask: 'Ask', activity: 'Activity', user: 'User' }
 } as const;
 
 export type BatteryId = keyof typeof COPY.batteries;

@@ -25,11 +25,12 @@
 <header class="top">
 	<a class="brand" href="/">⚡ {COPY.appName}</a>
 	<nav aria-label="Main">
+		<a href="/welcome" aria-current={page.url.pathname === '/welcome' ? 'page' : undefined}>{COPY.nav.welcome}</a>
 		<a href="/" aria-current={page.url.pathname === '/' ? 'page' : undefined}>{COPY.nav.home}</a>
 		<a href="/today" aria-current={page.url.pathname === '/today' ? 'page' : undefined}>{COPY.nav.today}</a>
-		<a href="/ask" aria-current={page.url.pathname === '/ask' ? 'page' : undefined}>{COPY.nav.ask}</a>
 		<a href="/activity" aria-current={page.url.pathname === '/activity' ? 'page' : undefined}>{COPY.nav.activity}</a>
 		<a href="/user" aria-current={page.url.pathname === '/user' ? 'page' : undefined}>{COPY.nav.user}</a>
+		<a href="/ask" aria-current={page.url.pathname === '/ask' ? 'page' : undefined}>{COPY.nav.ask}</a>
 	</nav>
 	<label class="persona">
 		<span class="sr-only">Demo person</span>

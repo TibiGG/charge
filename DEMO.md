@@ -5,7 +5,7 @@ make demo          # API :8000 + UI :5173
 make test          # the 5 judged constraints, as tests
 ```
 
-Open **http://localhost:5173/?p=margaret**.
+Open **http://localhost:5173/?p=margaret** (or the deployed https://charge-bupa.vercel.app, backed by Cloud Run in London: https://charge-api-845717888369.europe-west2.run.app).
 
 ---
 
@@ -13,6 +13,8 @@ Open **http://localhost:5173/?p=margaret**.
 
 Before going on stage, clear this browser's demo state (votes, logs, kit, sync) from the browser console:
 `localStorage.clear()`. Pin the time of day with `?at=` if you need a fixed demo, e.g. `/today?at=08:00`.
+
+**(Optional, 10s) Welcome (`/welcome`)**: *Sign in with Bupa* → *Apple Watch* → "We found 14 days of workouts and sleep." Simulated: nothing is sent.
 
 **0:00 Batteries (`/?p=margaret`)**
 - "Five batteries from her Apple Watch. Her charge is set by her **emptiest** one, not her average."

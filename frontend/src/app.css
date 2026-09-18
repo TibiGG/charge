@@ -259,3 +259,22 @@ details.daypart.inspect[open] .look { display: none; }
 .fill.band-room_to_grow { background: repeating-linear-gradient(135deg, var(--low) 0 9px, color-mix(in srgb, var(--low) 65%, var(--glass)) 9px 13px); }
 /* What they just added: a solid segment on top that grows in when the page opens. */
 .fill.fill-new { background: var(--brand); transition: height 1.4s cubic-bezier(.2,.8,.2,1); box-shadow: inset 0 3px 0 rgb(255 255 255 / .35); }
+
+/* ---- Welcome / onboarding (simulated sign-in and wearable connection) ---- */
+.onboard-step { display: flex; flex-direction: column; gap: 10px; }
+.onboard-step h2 { margin: 0 0 4px; }
+.onboard-step.locked { opacity: .55; }
+.onboard-step.done-step { border-color: var(--full); }
+.sso { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.sso-mark { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; font-weight: 800; background: var(--glass); color: var(--ink); }
+.sso-bupa .sso-mark { background: var(--surface); color: var(--brand); }
+.email-form { display: flex; flex-direction: column; gap: 8px; }
+.email-form input { font: inherit; min-height: 48px; padding: 6px 10px; border: 2px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); }
+.wear-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.wear-mark { font-size: 1.6rem; }
+.link-btn { display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+.center { text-align: center; }
+@media (max-width: 560px) {
+	.top nav { order: 3; flex-basis: 100%; gap: 2px; }
+	.top nav a { padding: 0 9px; font-size: .95rem; }
+}

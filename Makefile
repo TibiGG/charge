@@ -30,11 +30,18 @@ api-image:
 api-run:
 	docker run --rm -p 8080:8080 -e PORT=8080 charge-api
 
-# Needs: gcloud auth login (done by you) + PROJECT=<id>
+# Needs: gcloud auth login (done by you). Builds locally and pushes the image, because
+# `--source` builds in Cloud Build, whose default service account the lab project locks down.
+PROJECT ?= ht-ai-hack26lon-836
+REGION  ?= europe-west2
+IMAGE   := $(REGION)-docker.pkg.dev/$(PROJECT)/cloud-run-source-deploy/charge-api:$(shell git rev-parse --short HEAD)
 deploy-api:
-	gcloud run deploy charge-api --source ./backend --project $(PROJECT) --region europe-west2 \
+	gcloud auth configure-docker $(REGION)-docker.pkg.dev --quiet
+	docker build --platform linux/amd64 -t $(IMAGE) ./backend
+	docker push $(IMAGE)
+	gcloud run deploy charge-api --image $(IMAGE) --project $(PROJECT) --region $(REGION) \
 	  --allow-unauthenticated --min-instances=1 --cpu=2 --memory=2Gi --cpu-boost \
-	  --timeout=30s --concurrency=10
+	  --timeout=30s --concurrency=10 --quiet
 
 deploy-web:
 	cd frontend && npx -y vercel@latest --prod --yes
