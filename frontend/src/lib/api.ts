@@ -1,4 +1,7 @@
-const BASE = import.meta.env.VITE_API_BASE ?? '';
+import { PUBLIC_API_BASE } from '$env/static/public';
+
+// Empty locally: Vite proxies /api to :8000. On Vercel: the Cloud Run URL.
+const BASE = (PUBLIC_API_BASE ?? '').replace(/\/$/, '');
 
 export type Timed<T> = T & { clientMs: number };
 

@@ -26,7 +26,9 @@ async def lifespan(_app):
 
 
 app = FastAPI(title="Charge", lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+# Vercel previews get random subdomains, so a regex, not a fixed list.
+app.add_middleware(CORSMiddleware, allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:5173",
+                   allow_methods=["*"], allow_headers=["*"])
 
 
 def _persona_or_404(pid: str) -> dict:
