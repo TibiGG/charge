@@ -15,7 +15,7 @@ web:
 demo:
 	@echo "Charge → http://localhost:5173"
 	@trap 'kill 0' INT TERM; \
-	(cd backend && $(PY) -m uvicorn app.main:app --port 8000) & \
+	(cd backend && $(PY) -m uvicorn app.main:app --host 0.0.0.0 --port 8000) & \
 	(cd frontend && npm run dev -- --port 5173) & \
 	wait
 

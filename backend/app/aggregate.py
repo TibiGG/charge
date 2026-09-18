@@ -26,13 +26,19 @@ BANDS = [(1.0, "topped_up", "Topped up"), (0.5, "ticking_over", "Ticking over"),
 
 # Live samples POSTed from the watch (Shortcut) — in-memory overlay per persona.
 LIVE_WORKOUTS: dict[str, list[dict]] = {}
+# Personas replaced by an uploaded Apple Health export (in memory, demo only).
+IMPORTED: dict[str, dict] = {}
 
 
 def load_persona(pid: str) -> dict:
     path = DATA / "personas" / f"{pid}.json"
-    if not path.exists():
+    if pid in IMPORTED:
+        base = json.loads(path.read_text()) if path.exists() else {}
+        p = {**base, **IMPORTED[pid], "id": pid, "name": base.get("name", "You")}
+    elif not path.exists():
         raise KeyError(pid)
-    p = json.loads(path.read_text())
+    else:
+        p = json.loads(path.read_text())
     p["workouts"] = p["workouts"] + LIVE_WORKOUTS.get(pid, [])
     return p
 
