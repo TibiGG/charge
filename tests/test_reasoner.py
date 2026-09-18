@@ -29,7 +29,7 @@ def test_sleep_rule_is_soft_and_cited_as_mixed():
 def test_every_recommend_rule_is_probabilistic_and_cited():
     for f, rid, p in engine.all_clause_ids():
         if f == "recommend":
-            assert p is not None and 0 < p < 1.0, rid
+            assert isinstance(p, float) and 0 < p < 1.0, rid
             assert engine.RULES[rid]["kind"] == "recommend"
 
 

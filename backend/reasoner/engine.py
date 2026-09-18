@@ -210,10 +210,10 @@ def all_clause_ids() -> list[tuple[str, str, float | str]]:
         head = clause.head if hasattr(clause, "head") else clause
         if head.probability is None:
             continue
-        try:
-            p: float | str = float(head.probability)
-        except (TypeError, ValueError):
-            p = "flex"
+        if head.probability.is_var():
+            p: float | str = "flex"
+        else:
+            p = float(head.probability)
         out.append((head.functor, str(head.args[-1]), p))
     return out
 
