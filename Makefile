@@ -21,3 +21,7 @@ demo:
 
 test:
 	$(PY) -m pytest -q tests
+
+# Cloud Run (needs: gcloud auth + PROJECT set). Usage: make deploy PROJECT=my-gcp-project
+deploy:
+	gcloud run deploy charge --source . --project $(PROJECT) --region europe-west2 --allow-unauthenticated --memory 1Gi

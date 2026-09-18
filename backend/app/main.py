@@ -166,3 +166,19 @@ def reset_live():
 async def ingest_apple_health(file: UploadFile):
     from ingest.apple_health import parse_export_stream
     return parse_export_stream(file.file)
+
+
+# ---- Serve the built SvelteKit SPA (production / Cloud Run: one service, no CORS) ----
+from pathlib import Path as _Path  # noqa: E402
+
+from fastapi.responses import FileResponse  # noqa: E402
+from fastapi.staticfiles import StaticFiles  # noqa: E402
+
+_WEB = _Path(__file__).resolve().parents[2] / "frontend" / "build"
+if _WEB.exists():
+    app.mount("/_app", StaticFiles(directory=_WEB / "_app"), name="assets")
+
+    @app.get("/{path:path}", include_in_schema=False)
+    def spa(path: str):
+        f = _WEB / path
+        return FileResponse(f if path and f.is_file() else _WEB / "index.html")
