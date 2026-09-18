@@ -94,9 +94,13 @@ def batteries(pid: str, logs: str | None = None, synced: bool = False):
     t = time.perf_counter()
     p = _persona_with(pid, logs, synced)
     b = compute_batteries(p)
+    # How much of each battery came from their own logs / the watch sync, so the change shows.
+    base = {x["id"]: x["value"] for x in compute_batteries(_persona_or_404(pid))["batteries"]} if (logs or synced) else {}
     for x in b["batteries"]:
         x["said"] = observation_sentence(x["id"], x["value"], x["target"])
         x["source"] = SOURCES[x["source_id"]]
+        x["added"] = round(x["value"] - base.get(x["id"], x["value"]), 1)
+    b["own_logs"] = len(_parse_logs(logs)) + (len(WEARABLE_PENDING.get(pid, [])) if synced else 0)
     return {"persona": {"id": p["id"], "name": p["name"], "age": p["age"],
                         "watch_connected": p["watch_connected"], "equipment": p.get("equipment", "none")},
             **b, "timings_ms": {"total": round((time.perf_counter() - t) * 1000, 1)}}

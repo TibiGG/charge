@@ -182,6 +182,8 @@ export const COPY = {
 		saved: 'Added. Your batteries now include it.',
 		seeBatteries: 'See my batteries',
 		list: 'This week and last week',
+		yours: 'Added by you',
+		noneYet: 'Nothing added yet.',
 		fromWatch: 'Watch',
 		fromYou: 'You added this',
 		fills: 'Fills',
@@ -220,6 +222,12 @@ export const COPY = {
 	},
 
 	offline: "We can't reach Charge right now. Please try again in a moment.",
+
+	of: 'of',
+	fromYou: 'new',
+	includesYours: 'This includes what you added.',
+	ownLogs: 'This includes things you added or synced.',
+	seeActivity: 'See your activity',
 
 	meaning: 'What does this mean?',
 	readAloud: 'Read aloud',

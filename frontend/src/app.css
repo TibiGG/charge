@@ -250,3 +250,8 @@ details.daypart.inspect[open] .look { display: none; }
 .log-list li { padding: 10px 0; border-bottom: 1px solid var(--line); }
 .log-list li.old { opacity: .6; }
 .log-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.vial-num { font-size: .85rem; font-variant-numeric: tabular-nums; color: var(--ink-soft); text-align: center; }
+.vial-added { font-size: .8rem; font-weight: 800; color: var(--brand-ink); background: var(--brand); border-radius: 999px; padding: 2px 8px; text-align: center; }
+/* Five tabs: wrap on phones instead of running off the edge. */
+.top nav { flex-wrap: wrap; }
+@media (max-width: 480px) { .top nav a { padding: 0 10px; } }

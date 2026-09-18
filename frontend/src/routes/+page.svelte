@@ -93,6 +93,7 @@
 		{/each}
 	</section>
 	<p class="hint">{COPY.tapVial}</p>
+	{#if data.own_logs > 0}<p class="done" role="status">{COPY.ownLogs} <a href="/activity">{COPY.seeActivity}</a></p>{/if}
 
 	<EquipmentPicker value={equipment} onchange={pickEquipment} />
 	<p class="hint"><a href="/user">{COPY.user.fineTune}</a></p>

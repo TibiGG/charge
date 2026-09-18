@@ -83,6 +83,7 @@
 	}
 
 	const label = (id: string) => COPY.batteries[id as BatteryId].label;
+	const mine = $derived((act?.items ?? []).filter((it: any) => it.source === 'you'));
 	const fmt = (x: number) => (Number.isInteger(x) ? String(x) : x.toFixed(1));
 	const sayAll = $derived(`${COPY.activity.title}. ${COPY.activity.intro}`);
 </script>
@@ -114,6 +115,27 @@
 			<a class="primary" href="/">{COPY.activity.seeBatteries}</a>
 		</section>
 	{/if}
+
+	<section class="card">
+		<h2>{COPY.activity.yours}</h2>
+		{#if mine.length}
+			<ul class="log-list">
+				{#each mine as it}
+					<li>
+						<div class="log-head"><strong>{it.label}</strong> · {it.duration_min} min <span class="tag choice-tag">{COPY.activity.fromYou}</span></div>
+						<div class="muted small">
+							{new Date(it.start).toLocaleString([], { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+							· {it.counts.length ? `${COPY.activity.fills}: ${it.counts.map(label).join(', ')}` : COPY.activity.nothing}
+							{#if it.note} · {it.note}{/if}
+						</div>
+						<button class="link" onclick={() => remove(it.id)}>{COPY.activity.remove}</button>
+					</li>
+				{/each}
+			</ul>
+		{:else}
+			<p class="muted">{COPY.activity.noneYet}</p>
+		{/if}
+	</section>
 
 	<section class="card">
 		<h2><Icon name="watch" size={24} /> {COPY.activity.fromWatch}</h2>
@@ -172,7 +194,7 @@
 	<section class="card">
 		<h2>{COPY.activity.list}</h2>
 		<ul class="log-list">
-			{#each act.items as it}
+			{#each act.items.filter((it: any) => it.source !== 'you') as it}
 				<li class:old={!it.in_window}>
 					<div class="log-head">
 						<strong>{it.label}</strong> · {it.duration_min} min
@@ -184,7 +206,6 @@
 						· {it.counts.length ? `${COPY.activity.fills}: ${it.counts.map(label).join(', ')}` : COPY.activity.nothing}
 						{#if it.note} · {it.note}{/if}
 					</div>
-					{#if it.source === 'you' && it.id}<button class="link" onclick={() => remove(it.id)}>{COPY.activity.remove}</button>{/if}
 				</li>
 			{/each}
 		</ul>
