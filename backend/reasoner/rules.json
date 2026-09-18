@@ -1,19 +1,196 @@
 {
-  "e_prs_osteo": {"kind": "edge", "head": "Your genome report puts you in a higher band for bone strength.", "body": ["prs_band(osteoporosis, high)"], "source_id": "src_bupa_genomic"},
-  "e_menopause": {"kind": "edge", "head": "You told us you are past the menopause.", "body": ["menopause_status(post)"], "source_id": "src_ros_strong_steady_straight"},
-  "e_col1a1": {"kind": "edge", "head": "You carry a small change in a gene called COL1A1. It links to bone strength.", "body": ["carries(rs1800012)"], "source_id": "src_genomos_col1a1"},
-  "e_prs_cm": {"kind": "edge", "head": "Your genome report puts you in a higher band for heart and weight health.", "body": ["prs_band(cardiometabolic, high)"], "source_id": "src_bupa_genomic"},
-  "e_fto": {"kind": "edge", "head": "You carry a small change in a gene called FTO. It links to body weight.", "body": ["carries(rs9939609)"], "source_id": "src_frayling_fto_2007"},
-
-  "r_strength_who": {"kind": "recommend", "action": "strength_training", "head": "Muscle work helps everyone. People are advised to do it 2 days a week.", "body": ["under_target(strength)"], "source_id": "src_who_2020_strength"},
-  "r_impact_loading": {"kind": "recommend", "action": "impact_loading", "head": "When both of those are true, loading your bones is the thing with the best evidence behind it.", "body": ["under_target(strength)", "shifted(bone_fragility)"], "source_id": "src_ros_strong_steady_straight"},
-  "r_balance_falls": {"kind": "recommend", "action": "balance_work", "head": "Balance work helps you stay steady on your feet.", "body": ["under_target(balance)", "shifted(bone_fragility)"], "source_id": "src_ros_strong_steady_straight"},
-  "r_balance_older": {"kind": "recommend", "action": "balance_work", "head": "Past 65, people are advised to do balance work 3 days a week.", "body": ["under_target(balance)", "older_adult"], "source_id": "src_who_2020_balance"},
-  "r_cardio_who": {"kind": "recommend", "action": "brisk_cardio", "head": "People are advised to aim for 150 minutes a week of activity that warms you up.", "body": ["under_target(cardio)"], "source_id": "src_who_2020_aerobic"},
-  "r_cardio_fto": {"kind": "recommend", "action": "brisk_cardio", "head": "For people with this gene change, being active makes the gene matter less.", "body": ["under_target(cardio)", "shifted(cardiometabolic)"], "source_id": "src_kilpelainen_fto_pa_2011"},
-  "r_peak_who": {"kind": "recommend", "action": "intervals", "head": "Short bursts of hard effort count double towards your weekly aim.", "body": ["under_target(peak)", "under_target(cardio)"], "source_id": "src_who_2020_vigorous"},
-  "r_mobility_blueprint": {"kind": "recommend", "action": "stretch_flow", "head": "Stretching is part of a well-rounded week. The evidence here is weaker.", "body": ["under_target(mobility)"], "source_id": "src_blueprint_flex"},
-  "r_adapt_yoga": {"kind": "recommend", "action": "power_yoga", "adapts": "yoga", "head": "You already do yoga, so we picked a yoga version rather than something new.", "body": ["habit(yoga)", "strength_need"], "source_id": "src_ros_strong_steady_straight", "design_note": "Preferring an existing habit is a product choice. The health claim is the bone-loading one it builds on."},
-  "r_adapt_weights": {"kind": "recommend", "action": "lift_then_ride", "adapts": "weights", "head": "You already lift weights, so we added a ride to the end of a session you already do.", "body": ["habit(weights)", "helps(brisk_cardio)"], "source_id": "src_who_2020_aerobic", "design_note": "Preferring an existing habit is a product choice. The health claim is the aerobic one it builds on."},
-  "r_adapt_walk": {"kind": "recommend", "action": "balance_walk", "adapts": "walking", "head": "You already walk every day, so we added balance moves to your walk.", "body": ["habit(walking)", "helps(balance_work)"], "source_id": "src_who_2020_balance", "design_note": "Preferring an existing habit is a product choice. The health claim is the balance one it builds on."}
+ "e_prs_osteo": {
+  "kind": "edge",
+  "head": "Your genome report puts you in a higher band for bone strength.",
+  "body": [
+   "prs_band(osteoporosis, high)"
+  ],
+  "source_id": "src_bupa_genomic"
+ },
+ "e_menopause": {
+  "kind": "edge",
+  "head": "You told us you are past the menopause.",
+  "body": [
+   "menopause_status(post)"
+  ],
+  "source_id": "src_ros_strong_steady_straight"
+ },
+ "e_col1a1": {
+  "kind": "edge",
+  "head": "You carry a small change in a gene called COL1A1. It links to bone strength.",
+  "body": [
+   "carries(rs1800012)"
+  ],
+  "source_id": "src_genomos_col1a1"
+ },
+ "e_prs_cm": {
+  "kind": "edge",
+  "head": "Your genome report puts you in a higher band for heart and weight health.",
+  "body": [
+   "prs_band(cardiometabolic, high)"
+  ],
+  "source_id": "src_bupa_genomic"
+ },
+ "e_fto": {
+  "kind": "edge",
+  "head": "You carry a small change in a gene called FTO. It links to body weight.",
+  "body": [
+   "carries(rs9939609)"
+  ],
+  "source_id": "src_frayling_fto_2007"
+ },
+ "r_strength_who": {
+  "kind": "recommend",
+  "action": "strength_training",
+  "head": "Muscle work helps everyone. People are advised to do it 2 days a week.",
+  "body": [
+   "under_target(strength)"
+  ],
+  "source_id": "src_who_2020_strength"
+ },
+ "r_impact_loading": {
+  "kind": "recommend",
+  "action": "impact_loading",
+  "head": "When both of those are true, loading your bones is the thing with the best evidence behind it.",
+  "body": [
+   "under_target(strength)",
+   "shifted(bone_fragility)"
+  ],
+  "source_id": "src_ros_strong_steady_straight"
+ },
+ "r_balance_falls": {
+  "kind": "recommend",
+  "action": "balance_work",
+  "head": "Balance work helps you stay steady on your feet.",
+  "body": [
+   "under_target(balance)",
+   "shifted(bone_fragility)"
+  ],
+  "source_id": "src_ros_strong_steady_straight"
+ },
+ "r_balance_older": {
+  "kind": "recommend",
+  "action": "balance_work",
+  "head": "Past 65, people are advised to do balance work 3 days a week.",
+  "body": [
+   "under_target(balance)",
+   "older_adult"
+  ],
+  "source_id": "src_who_2020_balance"
+ },
+ "r_cardio_who": {
+  "kind": "recommend",
+  "action": "brisk_cardio",
+  "head": "People are advised to aim for 150 minutes a week of activity that warms you up.",
+  "body": [
+   "under_target(cardio)"
+  ],
+  "source_id": "src_who_2020_aerobic"
+ },
+ "r_cardio_fto": {
+  "kind": "recommend",
+  "action": "brisk_cardio",
+  "head": "For people with this gene change, being active makes the gene matter less.",
+  "body": [
+   "under_target(cardio)",
+   "shifted(cardiometabolic)"
+  ],
+  "source_id": "src_kilpelainen_fto_pa_2011"
+ },
+ "r_peak_who": {
+  "kind": "recommend",
+  "action": "intervals",
+  "head": "Short bursts of hard effort count double towards your weekly aim.",
+  "body": [
+   "under_target(peak)",
+   "under_target(cardio)"
+  ],
+  "source_id": "src_who_2020_vigorous"
+ },
+ "r_mobility_blueprint": {
+  "kind": "recommend",
+  "action": "stretch_flow",
+  "head": "Stretching is part of a well-rounded week. The evidence here is weaker.",
+  "body": [
+   "under_target(mobility)"
+  ],
+  "source_id": "src_blueprint_flex"
+ },
+ "r_adapt_yoga": {
+  "kind": "recommend",
+  "action": "power_yoga",
+  "adapts": "yoga",
+  "head": "You already do yoga, so we picked a yoga version rather than something new.",
+  "body": [
+   "habit(yoga)",
+   "strength_need"
+  ],
+  "source_id": "src_ros_strong_steady_straight",
+  "design_note": "Preferring an existing habit is a product choice. The health claim is the bone-loading one it builds on."
+ },
+ "r_adapt_weights": {
+  "kind": "recommend",
+  "action": "lift_then_ride",
+  "adapts": "weights",
+  "head": "You already lift weights, so we added a ride to the end of a session you already do.",
+  "body": [
+   "habit(weights)",
+   "helps(brisk_cardio)"
+  ],
+  "source_id": "src_who_2020_aerobic",
+  "design_note": "Preferring an existing habit is a product choice. The health claim is the aerobic one it builds on."
+ },
+ "r_adapt_walk": {
+  "kind": "recommend",
+  "action": "balance_walk",
+  "adapts": "walking",
+  "head": "You already walk every day, so we added balance moves to your walk.",
+  "body": [
+   "habit(walking)",
+   "helps(balance_work)"
+  ],
+  "source_id": "src_who_2020_balance",
+  "design_note": "Preferring an existing habit is a product choice. The health claim is the balance one it builds on."
+ },
+ "p_need": {
+  "kind": "preference",
+  "health_claim": false,
+  "head": "This battery is the emptiest one this fits.",
+  "body": [
+   "deficit(battery)"
+  ],
+  "source_id": null,
+  "design_note": "How empty the battery is comes from your watch and the aim for that battery. It is not a new health claim."
+ },
+ "p_daypart_fit": {
+  "kind": "preference",
+  "health_claim": false,
+  "head": "This suits this time of day.",
+  "body": [
+   "daypart_fit(battery, daypart)"
+  ],
+  "source_id": null,
+  "design_note": "Which time of day suits which activity is our practical choice, not a health claim."
+ },
+ "p_habit_fit": {
+  "kind": "preference",
+  "health_claim": false,
+  "head": "This is something new for you, so it ranks a little lower than a version of what you already do.",
+  "body": [
+   "not habit"
+  ],
+  "source_id": null,
+  "design_note": "Preferring an existing habit is a product choice, not a health claim."
+ },
+ "r_sleep_evening": {
+  "kind": "penalty",
+  "health_claim": true,
+  "head": "Hard exercise late can make it harder to drop off.",
+  "body": [
+   "intensity(vigorous)",
+   "ends_within(60, bedtime)",
+   "not user_override(sleep)"
+  ],
+  "source_id": "src_stutz_2019_evening_exercise"
+ }
 }

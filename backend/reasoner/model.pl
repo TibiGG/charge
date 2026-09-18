@@ -14,6 +14,16 @@ habit(nobody, none).
 menopause_status(nobody, none).
 age(nobody, 0).
 observed(nobody, none, 0.0).
+cand(none).
+cand_action(none, none).
+cand_battery(none, none).
+cand_intensity(none, none).
+cand_habit(none, none).
+slot_end_min(none, 0).
+deficit(none, 0.0).
+now_daypart(none).
+bedtime_min(nobody, 0).
+user_override(none).
 
 % ===== 2. GENOMIC REPORT (probabilistic: the probability IS the uncertainty) =====
 % p = modest, calibrated confidence that this marker meaningfully shifts THIS
@@ -64,3 +74,50 @@ strength_need(P) :- helps(P, strength_training).
 0.90::recommend(P, power_yoga, r_adapt_yoga) :- habit(P, yoga), strength_need(P).
 0.90::recommend(P, lift_then_ride, r_adapt_weights) :- habit(P, weights), helps(P, brisk_cardio).
 0.90::recommend(P, balance_walk, r_adapt_walk) :- habit(P, walking), helps(P, balance_work).
+
+% ===== 5. DAYPART + CANDIDATE ACTIVITIES =====
+% Python injects only the ~8 best candidates for one daypart, after applying the
+% two HARD gates (equipment available, free calendar slot). ProbLog then does
+% selection + provenance over those, so the proof tree stays small and real.
+%
+% Ranking = need x evidence x daypart fit x habit fit x (1 - sleep conflict).
+% Only `helps/2` (evidence) is shown to the person as "how sure we are";
+% the other factors are ranking preferences.
+
+% Practical suitability — a product preference, NOT a health claim. No citation.
+daypart_fit(strength, morning,   0.9).
+daypart_fit(strength, afternoon, 1.0).
+daypart_fit(strength, evening,   0.8).
+daypart_fit(cardio,   morning,   1.0).
+daypart_fit(cardio,   afternoon, 1.0).
+daypart_fit(cardio,   evening,   0.9).
+daypart_fit(peak,     morning,   0.9).
+daypart_fit(peak,     afternoon, 1.0).
+daypart_fit(peak,     evening,   0.8).
+daypart_fit(balance,  morning,   1.0).   % cheap, short, needs no kit or shower
+daypart_fit(balance,  afternoon, 0.9).
+daypart_fit(balance,  evening,   0.9).
+daypart_fit(mobility, morning,   1.0).
+daypart_fit(mobility, afternoon, 0.8).
+daypart_fit(mobility, evening,   1.0).
+
+% How empty the battery this activity fills most is. Deficit stays the primary driver.
+W::need(C, p_need) :- cand_battery(C, B), deficit(B, W).
+W::fits_now(C, p_daypart_fit) :- cand_battery(C, B), now_daypart(D), daypart_fit(B, D, W).
+
+% Adapting a habit you already have beats starting a new one (a product choice).
+has_habit_match(C) :- cand_habit(C, H), habit(u1, H).
+habit_fit(C) :- has_habit_match(C).
+0.87::habit_fit(C, p_habit_fit) :- cand(C), \+ has_habit_match(C).
+habit_fit(C) :- habit_fit(C, _).
+
+% THE one daypart rule that is a health claim. Evidence is MIXED and mostly
+% reassuring, so it is a soft penalty, never a block, and the person can override.
+ends_near_bedtime(C) :- slot_end_min(C, E), bedtime_min(u1, B), Gap is B - E, Gap >= 0, Gap =< 60.
+0.65::sleep_conflict(C, r_sleep_evening) :-
+    cand_intensity(C, vigorous), ends_near_bedtime(C), \+ user_override(sleep).
+sleep_conflict(C) :- sleep_conflict(C, _).
+
+evidence_for(C) :- cand_action(C, A), helps(u1, A).
+good_raw(C) :- need(C, _), evidence_for(C), fits_now(C, _), habit_fit(C).
+good(C) :- good_raw(C), \+ sleep_conflict(C).

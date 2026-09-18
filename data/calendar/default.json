@@ -1,7 +1,7 @@
 {
  "timezone": "Europe/London",
- "day_start": "07:00",
- "day_end": "21:00",
+ "day_start": "06:30",
+ "day_end": "22:00",
  "busy_by_weekday": {
   "0": [
    [

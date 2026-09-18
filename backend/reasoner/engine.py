@@ -80,12 +80,17 @@ def evaluate(facts: str) -> dict:
     return {"helps": helps, "rules": rules, "edges": edges}
 
 
-_CHOICE = re.compile(r"choice\(\d+,\d+,(\w+)\(u1,(\w+),(\w+)\),u1\)")
+_CHOICE = re.compile(r"choice\(\d+,\d+,(\w+)\(([^()]*)\),[^()]*?\)")
 
 
-def explain(facts: str, action: str) -> list[dict]:
-    """Real proofs from ProbLog's KBest explain, for the chosen action only."""
-    prog = _program(facts, f"query(helps(u1,{action})).")
+def _choice_label(m: re.Match) -> str:
+    args = m.group(2).split(",")
+    return f"rule {args[-1]}" if args[-1] in RULES else f"{m.group(1)}({m.group(2)})"
+
+
+def explain(facts: str, action: str, query: str | None = None) -> list[dict]:
+    """Real proofs from ProbLog's KBest explain, for one query only (the winner)."""
+    prog = _program(facts, f"query({query or f'helps(u1,{action})'}).")
     db = DefaultEngine().prepare(PrologString(prog))
     out: list = []
     KBestFormula.create_from(db, label_all=True).evaluate(explain=out)
@@ -95,7 +100,7 @@ def explain(facts: str, action: str) -> list[dict]:
             continue
         body, _, prob = line.partition("% P=")
         body = body.split(":-", 1)[1].strip().rstrip(".").strip()
-        body = _CHOICE.sub(lambda m: f"rule {m.group(3)}", body)
+        body = _CHOICE.sub(_choice_label, body)
         literals = [l.strip() for l in re.split(r",\s*(?![^()]*\))", body) if l.strip()]
         # Positive literals are the proof; negated ones only make the sum disjoint.
         proofs.append({
@@ -197,14 +202,61 @@ def fallback(batteries: dict) -> dict:
     }]}
 
 
-def all_clause_ids() -> list[tuple[str, str, float | None]]:
-    """(functor, id, probability) for every clause head with an id — used by soundness tests."""
+def all_clause_ids() -> list[tuple[str, str, float | str]]:
+    """(functor, id, probability) for EVERY probabilistic clause — used by soundness tests.
+    Flexible probabilities (bound from data at run time) are reported as "flex"."""
     out = []
     for clause in PrologString(MODEL):
         head = clause.head if hasattr(clause, "head") else clause
-        if head.functor in ("recommend", "marker_shifts"):
-            p = float(head.probability) if head.probability is not None else None
-            out.append((head.functor, str(head.args[-1]), p))
+        if head.probability is None:
+            continue
+        try:
+            p: float | str = float(head.probability)
+        except (TypeError, ValueError):
+            p = "flex"
+        out.append((head.functor, str(head.args[-1]), p))
+    return out
+
+
+# ---------- Dayparts: candidates in, winner + provenance out ----------
+
+def candidate_facts(cands: list[dict], daypart: str, deficits: dict[str, float],
+                    bedtime_min: int | None, override_sleep: bool) -> str:
+    lines = [f"now_daypart({daypart})."]
+    lines += [f"deficit({b}, {max(0.0, min(1.0, w)):.3f})." for b, w in deficits.items()]
+    if bedtime_min is not None:  # no sleep data -> no bedtime -> sleep rule cannot fire
+        lines.append(f"bedtime_min(u1, {bedtime_min}).")
+    if override_sleep:
+        lines.append("user_override(sleep).")
+    for c in cands:
+        cid = _atom(c["id"])
+        lines += [f"cand({cid}).", f"cand_action({cid}, {c['action']}).",
+                  f"cand_battery({cid}, {c['primary_battery']}).", f"cand_intensity({cid}, {c['intensity']})."]
+        lines += [f"cand_habit({cid}, {_atom(h)})." for h in c.get("habits", [])]
+        if c.get("slot_end_min") is not None:
+            lines.append(f"slot_end_min({cid}, {c['slot_end_min']}).")
+    return "\n".join(lines)
+
+
+def evaluate_day(facts: str) -> dict:
+    q = "\n".join([
+        "query(good(_)).", "query(good_raw(_)).", "query(sleep_conflict(_, r_sleep_evening)).",
+        "query(helps(u1,_)).", "query(recommend(u1,_,_)).", "query(marker_shifts(u1,_,_))."])
+    res = get_evaluatable().create_from(PrologString(_program(facts, q))).evaluate()
+    out = {"good": {}, "good_raw": {}, "sleep_conflict": {}, "helps": {}, "rules": {}, "edges": {}}
+    for term, p in res.items():
+        args = [str(a) for a in term.args]
+        if term.functor in ("good", "good_raw"):
+            if args[0] != "none":
+                out[term.functor][args[0]] = p
+        elif term.functor == "sleep_conflict":
+            out["sleep_conflict"][args[0]] = p
+        elif term.functor == "helps":
+            out["helps"][args[1]] = p
+        elif term.functor == "recommend":
+            out["rules"][args[2]] = {"action": args[1], "p": p}
+        elif term.functor == "marker_shifts":
+            out["edges"][args[2]] = {"trait": args[1], "p": p}
     return out
 
 

@@ -9,6 +9,7 @@
  "watch_connected": false,
  "genome_report": "sam.json",
  "calendar": "default.json",
+ "equipment": "none",
  "workouts": [],
  "daily": [],
  "vo2max": null,

@@ -55,7 +55,12 @@ def test_every_problog_rule_and_edge_has_a_resolvable_source():
     assert ids, "no rules parsed from model.pl"
     for functor, rid, _p in ids:
         assert rid in engine.RULES, f"{functor} clause {rid} has no rules.json entry"
-        assert engine.RULES[rid]["source_id"] in SOURCES, rid
+        meta = engine.RULES[rid]
+        # Every probabilistic clause is EITHER sourced OR explicitly declared not a health claim.
+        if meta.get("health_claim") is False:
+            assert meta["source_id"] is None and meta.get("design_note"), rid
+        else:
+            assert meta["source_id"] in SOURCES, rid
     # And no orphan metadata.
     assert {rid for _, rid, _ in ids} == set(engine.RULES)
 

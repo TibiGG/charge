@@ -1,24 +1,842 @@
 {
-  "_note": "Curated allowlist. Every video_id was checked against YouTube oEmbed (exists, embeddable, title + channel match) and duration read from the watch page on 2026-09-18. 'reviewed' = hand-picked and checked by the team; clinical review by Bupa is still pending. No YouTube API calls at request time.",
-  "videos": [
-    {"video_id": "dGCo3jX8PNs", "title": "Exercises to improve balance and muscle strength", "channel": "Royal Osteoporosis Society", "duration_min": 17, "batteries": ["strength", "balance"], "for_actions": ["power_yoga", "impact_loading", "balance_work"], "intensity": "moderate", "equipment": "none", "seated_option": false, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "EUbKu27YhlQ", "title": "Pilates exercises – modifications with osteoporosis", "channel": "Royal Osteoporosis Society", "duration_min": 14, "batteries": ["mobility", "strength"], "for_actions": ["stretch_flow"], "intensity": "gentle", "equipment": "mat", "seated_option": false, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "-NOjBAZYtsQ", "title": "Learn a fun dance routine and improve your bone strength!", "channel": "Royal Osteoporosis Society", "duration_min": 1, "batteries": ["strength"], "for_actions": ["impact_loading"], "intensity": "moderate", "equipment": "none", "seated_option": false, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "EJgZygWBKaE", "title": "Chair-Based Exercises | 10-Minute Routine for Strength & Mobility", "channel": "CLEAR Trust", "duration_min": 10, "batteries": ["strength", "mobility"], "for_actions": [], "intensity": "gentle", "equipment": "chair", "seated_option": true, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "JejTelL05Qw", "title": "Strength Training Workout for Older Adults", "channel": "National Institute on Aging", "duration_min": 27, "batteries": ["strength"], "for_actions": ["strength_training"], "intensity": "gentle", "equipment": "light weights", "seated_option": false, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "TOKxtgKrGCQ", "title": "4 Lower Body Strength Exercises for Older Adults", "channel": "National Institute on Aging", "duration_min": 10, "batteries": ["strength"], "for_actions": ["strength_training"], "intensity": "gentle", "equipment": "chair", "seated_option": false, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "LVRcXDEdC5U", "title": "Chair Dip Strength Exercise for Older Adults", "channel": "National Institute on Aging", "duration_min": 2, "batteries": ["strength"], "for_actions": [], "intensity": "gentle", "equipment": "chair", "seated_option": true, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "4YOBIEOobCE", "title": "Balance Exercise for Older Adults", "channel": "National Institute on Aging", "duration_min": 1, "batteries": ["balance"], "for_actions": ["balance_work"], "intensity": "gentle", "equipment": "none", "seated_option": false, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "z_GKdFf3qv4", "title": "Heel-to-Toe Walk Balance Exercise for Older Adults", "channel": "National Institute on Aging", "duration_min": 1, "batteries": ["balance"], "for_actions": ["balance_walk"], "intensity": "gentle", "equipment": "none", "seated_option": false, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "KcdkySvCRCc", "title": "6 Flexibility Exercises for Older Adults", "channel": "National Institute on Aging", "duration_min": 18, "batteries": ["mobility"], "for_actions": ["stretch_flow"], "intensity": "gentle", "equipment": "none", "seated_option": false, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "KTba3p_bM9c", "title": "Tai Chi for Better Balance", "channel": "SilverSneakers", "duration_min": 14, "batteries": ["balance"], "for_actions": ["balance_work"], "intensity": "gentle", "equipment": "none", "seated_option": false, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "w_hoBMvNxGI", "title": "30 Minute Tai Chi Practice for Balance", "channel": "Emory Goizueta Brain Health Institute", "duration_min": 31, "batteries": ["balance"], "for_actions": [], "intensity": "gentle", "equipment": "none", "seated_option": false, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "1Y57LGhSdag", "title": "15 Minute Beginner Cardio", "channel": "The Body Coach TV by Joe Wicks", "duration_min": 16, "batteries": ["cardio", "peak"], "for_actions": ["brisk_cardio", "intervals"], "intensity": "vigorous", "equipment": "none", "seated_option": false, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "p-R2QhrhdzU", "title": "15 Minute Dumbbell Strength Workout", "channel": "The Body Coach TV by Joe Wicks", "duration_min": 16, "batteries": ["strength"], "for_actions": [], "intensity": "moderate", "equipment": "dumbbells", "seated_option": false, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "hWGKj8jbzmg", "title": "20 Minute Strength & Cardio", "channel": "The Body Coach TV by Joe Wicks", "duration_min": 21, "batteries": ["strength", "cardio", "peak"], "for_actions": ["lift_then_ride"], "intensity": "vigorous", "equipment": "dumbbells", "seated_option": false, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "a-sZbOfau6c", "title": "Yoga for People Who Sit All Day", "channel": "Yoga With Adriene", "duration_min": 9, "batteries": ["mobility"], "for_actions": ["stretch_flow"], "intensity": "gentle", "equipment": "mat", "seated_option": false, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "eHhPe_eiCiA", "title": "Start the Day Grounded | Morning Yoga", "channel": "Yoga With Adriene", "duration_min": 12, "batteries": ["mobility"], "for_actions": [], "intensity": "gentle", "equipment": "mat", "seated_option": false, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "gXB3NhOAalk", "title": "Chair Yoga Stretch & Strength // Seated Exercises for Seniors & Beginners", "channel": "SeniorShape Fitness", "duration_min": 29, "batteries": ["mobility", "strength"], "for_actions": [], "intensity": "gentle", "equipment": "chair, light weights", "seated_option": true, "reviewed": true, "clinical_review": "pending"},
-    {"video_id": "cgaDPZ8UdZY", "title": "Chair Yoga for Seniors & Beginners // Energizing Seated Stretches", "channel": "SeniorShape Fitness", "duration_min": 22, "batteries": ["mobility"], "for_actions": [], "intensity": "gentle", "equipment": "chair", "seated_option": true, "reviewed": true, "clinical_review": "pending"}
-  ]
+ "_note": "Write data/catalog.json — the curated activity shelf.\n\nEach activity maps to one ProbLog action class (which carries the evidence) and has\nthe metadata the daypart/equipment filter needs. Coverage falls out of the metadata;\nnothing is hand-authored per persona. Video ids were each verified against YouTube\noEmbed (exists, embeddable, title + channel) on 2026-09-18.",
+ "activities": [
+  {
+   "id": "heel_drops",
+   "title": "Heel drops and stair steps",
+   "action": "impact_loading",
+   "batteries": [
+    "strength"
+   ],
+   "intensity": "moderate",
+   "duration_min": 10,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "some",
+   "seated_option": false,
+   "habits": [],
+   "video": null,
+   "steps": [
+    "Stand tall. Hold a wall or a chair if you like.",
+    "Rise up onto your toes. Then drop down onto your heels.",
+    "Then step up and down one stair, one foot at a time.",
+    "Stop if anything hurts."
+   ],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "yoga_heel_drops",
+   "title": "Your yoga, with heel drops added",
+   "action": "power_yoga",
+   "batteries": [
+    "strength",
+    "balance"
+   ],
+   "intensity": "moderate",
+   "duration_min": 25,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "evening"
+   ],
+   "noise_level": "some",
+   "seated_option": false,
+   "habits": [
+    "yoga"
+   ],
+   "video": {
+    "video_id": "eHhPe_eiCiA",
+    "title": "Start the Day Grounded | Morning Yoga",
+    "channel": "Yoga With Adriene",
+    "length_min": 12
+   },
+   "steps": [
+    "Do your usual yoga. This video is a good one.",
+    "Between poses, rise onto your toes and drop onto your heels.",
+    "Add a few small hops if that feels fine."
+   ],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "ros_dance",
+   "title": "A short dance for your bones",
+   "action": "impact_loading",
+   "batteries": [
+    "strength"
+   ],
+   "intensity": "moderate",
+   "duration_min": 5,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "loud",
+   "seated_option": false,
+   "habits": [],
+   "video": {
+    "video_id": "-NOjBAZYtsQ",
+    "title": "Learn a fun dance routine and improve your bone strength!",
+    "channel": "Royal Osteoporosis Society",
+    "length_min": 1
+   },
+   "steps": [
+    "Learn the moves from the video.",
+    "Do it a few times through."
+   ],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "chair_squats",
+   "title": "Chair squats and wall press-ups",
+   "action": "strength_training",
+   "batteries": [
+    "strength"
+   ],
+   "intensity": "moderate",
+   "duration_min": 15,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "quiet",
+   "seated_option": false,
+   "habits": [],
+   "video": {
+    "video_id": "TOKxtgKrGCQ",
+    "title": "4 Lower Body Strength Exercises for Older Adults",
+    "channel": "National Institute on Aging",
+    "length_min": 10
+   },
+   "steps": [
+    "Sit down onto a chair and stand back up.",
+    "Then push away from a wall with your arms."
+   ],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "ros_strength_balance",
+   "title": "Strength and balance moves",
+   "action": "balance_work",
+   "batteries": [
+    "strength",
+    "balance"
+   ],
+   "intensity": "moderate",
+   "duration_min": 17,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "quiet",
+   "seated_option": false,
+   "habits": [],
+   "video": {
+    "video_id": "dGCo3jX8PNs",
+    "title": "Exercises to improve balance and muscle strength",
+    "channel": "Royal Osteoporosis Society",
+    "length_min": 17
+   },
+   "steps": [],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "chair_workout",
+   "title": "A seated strength routine",
+   "action": "strength_training",
+   "batteries": [
+    "strength",
+    "mobility"
+   ],
+   "intensity": "gentle",
+   "duration_min": 10,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "quiet",
+   "seated_option": true,
+   "habits": [],
+   "video": {
+    "video_id": "EJgZygWBKaE",
+    "title": "Chair-Based Exercises | 10-Minute Routine for Strength & Mobility",
+    "channel": "CLEAR Trust",
+    "length_min": 10
+   },
+   "steps": [],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "nia_strength",
+   "title": "A strength workout with light weights",
+   "action": "strength_training",
+   "batteries": [
+    "strength"
+   ],
+   "intensity": "gentle",
+   "duration_min": 27,
+   "equipment": [
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "quiet",
+   "seated_option": false,
+   "habits": [],
+   "video": {
+    "video_id": "JejTelL05Qw",
+    "title": "Strength Training Workout for Older Adults",
+    "channel": "National Institute on Aging",
+    "length_min": 27
+   },
+   "steps": [],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "dumbbells",
+   "title": "A dumbbell strength workout",
+   "action": "strength_training",
+   "batteries": [
+    "strength"
+   ],
+   "intensity": "moderate",
+   "duration_min": 16,
+   "equipment": [
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "some",
+   "seated_option": false,
+   "habits": [],
+   "video": {
+    "video_id": "p-R2QhrhdzU",
+    "title": "15 Minute Dumbbell Strength Workout",
+    "channel": "The Body Coach TV by Joe Wicks",
+    "length_min": 16
+   },
+   "steps": [],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "gym_machines",
+   "title": "A strength circuit on the machines",
+   "action": "strength_training",
+   "batteries": [
+    "strength"
+   ],
+   "intensity": "moderate",
+   "duration_min": 30,
+   "equipment": [
+    "gym"
+   ],
+   "daypart": [
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "quiet",
+   "seated_option": false,
+   "habits": [
+    "weights"
+   ],
+   "video": null,
+   "steps": [
+    "Pick four machines: legs, chest, back and arms.",
+    "Go round them in a loop."
+   ],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "one_leg",
+   "title": "Stand on one leg while the kettle boils",
+   "action": "balance_work",
+   "batteries": [
+    "balance"
+   ],
+   "intensity": "gentle",
+   "duration_min": 5,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "quiet",
+   "seated_option": false,
+   "habits": [],
+   "video": {
+    "video_id": "QT5d4tTXW6U",
+    "title": "Stand on One Foot Balance Exercise for Older Adults",
+    "channel": "National Institute on Aging",
+    "length_min": 1
+   },
+   "steps": [
+    "Hold the worktop.",
+    "Lift one foot. Then swap."
+   ],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "balance_basics",
+   "title": "Balance practice",
+   "action": "balance_work",
+   "batteries": [
+    "balance"
+   ],
+   "intensity": "gentle",
+   "duration_min": 5,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "quiet",
+   "seated_option": false,
+   "habits": [],
+   "video": {
+    "video_id": "4YOBIEOobCE",
+    "title": "Balance Exercise for Older Adults",
+    "channel": "National Institute on Aging",
+    "length_min": 1
+   },
+   "steps": [],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "tai_chi",
+   "title": "Tai chi for balance",
+   "action": "balance_work",
+   "batteries": [
+    "balance"
+   ],
+   "intensity": "gentle",
+   "duration_min": 14,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "quiet",
+   "seated_option": false,
+   "habits": [],
+   "video": {
+    "video_id": "KTba3p_bM9c",
+    "title": "Tai Chi for Better Balance",
+    "channel": "SilverSneakers",
+    "length_min": 14
+   },
+   "steps": [],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "tai_chi_long",
+   "title": "A longer tai chi practice",
+   "action": "balance_work",
+   "batteries": [
+    "balance",
+    "mobility"
+   ],
+   "intensity": "gentle",
+   "duration_min": 31,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "evening"
+   ],
+   "noise_level": "quiet",
+   "seated_option": false,
+   "habits": [],
+   "video": {
+    "video_id": "w_hoBMvNxGI",
+    "title": "30 Minute Tai Chi Practice for Balance",
+    "channel": "Emory Goizueta Brain Health Institute",
+    "length_min": 31
+   },
+   "steps": [],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "balance_walk",
+   "title": "Your walk, with heel-to-toe steps",
+   "action": "balance_walk",
+   "batteries": [
+    "balance"
+   ],
+   "intensity": "gentle",
+   "duration_min": 25,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon"
+   ],
+   "noise_level": "quiet",
+   "seated_option": false,
+   "habits": [
+    "walking"
+   ],
+   "video": {
+    "video_id": "z_GKdFf3qv4",
+    "title": "Heel-to-Toe Walk Balance Exercise for Older Adults",
+    "channel": "National Institute on Aging",
+    "length_min": 1
+   },
+   "steps": [
+    "Go for your usual walk.",
+    "For a few stretches of it, walk heel to toe, like on a line."
+   ],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "brisk_walk",
+   "title": "A brisk walk",
+   "action": "brisk_cardio",
+   "batteries": [
+    "cardio"
+   ],
+   "intensity": "moderate",
+   "duration_min": 30,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "quiet",
+   "seated_option": false,
+   "habits": [
+    "walking"
+   ],
+   "video": null,
+   "steps": [
+    "Walk fast enough to feel warm.",
+    "You should still be able to talk."
+   ],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "walk_bursts",
+   "title": "A walk with fast bursts",
+   "action": "intervals",
+   "batteries": [
+    "peak",
+    "cardio"
+   ],
+   "intensity": "vigorous",
+   "duration_min": 20,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "quiet",
+   "seated_option": false,
+   "habits": [
+    "walking"
+   ],
+   "video": null,
+   "steps": [
+    "Walk at an easy pace.",
+    "Every few minutes, go as fast as you can for a short burst."
+   ],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "jw_cardio",
+   "title": "A beginner cardio workout",
+   "action": "brisk_cardio",
+   "batteries": [
+    "cardio",
+    "peak"
+   ],
+   "intensity": "vigorous",
+   "duration_min": 16,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "loud",
+   "seated_option": false,
+   "habits": [],
+   "video": {
+    "video_id": "1Y57LGhSdag",
+    "title": "15 Minute Beginner Cardio",
+    "channel": "The Body Coach TV by Joe Wicks",
+    "length_min": 16
+   },
+   "steps": [],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "jw_strength_cardio",
+   "title": "A strength and cardio workout",
+   "action": "brisk_cardio",
+   "batteries": [
+    "cardio",
+    "peak",
+    "strength"
+   ],
+   "intensity": "vigorous",
+   "duration_min": 21,
+   "equipment": [
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "loud",
+   "seated_option": false,
+   "habits": [],
+   "video": {
+    "video_id": "hWGKj8jbzmg",
+    "title": "20 Minute Strength & Cardio",
+    "channel": "The Body Coach TV by Joe Wicks",
+    "length_min": 21
+   },
+   "steps": [],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "bike_intervals",
+   "title": "Intervals on a bike",
+   "action": "intervals",
+   "batteries": [
+    "peak",
+    "cardio"
+   ],
+   "intensity": "vigorous",
+   "duration_min": 20,
+   "equipment": [
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "quiet",
+   "seated_option": false,
+   "habits": [
+    "spin"
+   ],
+   "video": null,
+   "steps": [
+    "Ride easy to warm up.",
+    "Then ride hard for a short burst. Then easy again. Repeat."
+   ],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "lift_then_ride",
+   "title": "Weights, then a ride on the bike",
+   "action": "lift_then_ride",
+   "batteries": [
+    "cardio"
+   ],
+   "intensity": "moderate",
+   "duration_min": 20,
+   "equipment": [
+    "gym"
+   ],
+   "daypart": [
+    "afternoon"
+   ],
+   "noise_level": "quiet",
+   "seated_option": false,
+   "habits": [
+    "weights"
+   ],
+   "video": null,
+   "steps": [
+    "Do your usual weights.",
+    "Then ride the bike at a steady pace."
+   ],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "swim",
+   "title": "An easy swim",
+   "action": "brisk_cardio",
+   "batteries": [
+    "cardio"
+   ],
+   "intensity": "moderate",
+   "duration_min": 30,
+   "equipment": [
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon"
+   ],
+   "noise_level": "quiet",
+   "seated_option": false,
+   "habits": [],
+   "video": null,
+   "steps": [],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "desk_yoga",
+   "title": "Yoga for people who sit all day",
+   "action": "stretch_flow",
+   "batteries": [
+    "mobility"
+   ],
+   "intensity": "gentle",
+   "duration_min": 9,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "quiet",
+   "seated_option": false,
+   "habits": [],
+   "video": {
+    "video_id": "a-sZbOfau6c",
+    "title": "Yoga for People Who Sit All Day",
+    "channel": "Yoga With Adriene",
+    "length_min": 9
+   },
+   "steps": [],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "nia_flex",
+   "title": "Stretches for the whole body",
+   "action": "stretch_flow",
+   "batteries": [
+    "mobility"
+   ],
+   "intensity": "gentle",
+   "duration_min": 18,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "evening"
+   ],
+   "noise_level": "quiet",
+   "seated_option": false,
+   "habits": [],
+   "video": {
+    "video_id": "KcdkySvCRCc",
+    "title": "6 Flexibility Exercises for Older Adults",
+    "channel": "National Institute on Aging",
+    "length_min": 18
+   },
+   "steps": [],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "ros_pilates",
+   "title": "Gentle pilates",
+   "action": "stretch_flow",
+   "batteries": [
+    "mobility",
+    "strength"
+   ],
+   "intensity": "gentle",
+   "duration_min": 14,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "evening"
+   ],
+   "noise_level": "quiet",
+   "seated_option": false,
+   "habits": [],
+   "video": {
+    "video_id": "EUbKu27YhlQ",
+    "title": "Pilates exercises – modifications with osteoporosis",
+    "channel": "Royal Osteoporosis Society",
+    "length_min": 14
+   },
+   "steps": [],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "chair_yoga",
+   "title": "Chair yoga",
+   "action": "stretch_flow",
+   "batteries": [
+    "mobility",
+    "strength"
+   ],
+   "intensity": "gentle",
+   "duration_min": 29,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon",
+    "evening"
+   ],
+   "noise_level": "quiet",
+   "seated_option": true,
+   "habits": [],
+   "video": {
+    "video_id": "gXB3NhOAalk",
+    "title": "Chair Yoga Stretch & Strength // Seated Exercises for Seniors & Beginners",
+    "channel": "SeniorShape Fitness",
+    "length_min": 29
+   },
+   "steps": [],
+   "reviewed": true,
+   "clinical_review": "pending"
+  },
+  {
+   "id": "chair_stretch",
+   "title": "Seated stretches",
+   "action": "stretch_flow",
+   "batteries": [
+    "mobility"
+   ],
+   "intensity": "gentle",
+   "duration_min": 22,
+   "equipment": [
+    "none",
+    "home",
+    "gym"
+   ],
+   "daypart": [
+    "morning",
+    "afternoon"
+   ],
+   "noise_level": "quiet",
+   "seated_option": true,
+   "habits": [],
+   "video": {
+    "video_id": "cgaDPZ8UdZY",
+    "title": "Chair Yoga for Seniors & Beginners // Energizing Seated Stretches",
+    "channel": "SeniorShape Fitness",
+    "length_min": 22
+   },
+   "steps": [],
+   "reviewed": true,
+   "clinical_review": "pending"
+  }
+ ]
 }

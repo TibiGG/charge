@@ -17,7 +17,7 @@ def w(day: date, hour: int, typ: str, minutes: int, hr: int) -> dict:
     return {"type": typ, "start": start.isoformat(), "duration_min": minutes, "mean_hr": hr}
 
 
-def build(pid, name, age, sex, menopause, habits, plan, daily, vo2, rhr, watch=True):
+def build(pid, name, age, sex, menopause, habits, plan, daily, vo2, rhr, watch=True, equipment="none", calendar="default.json"):
     workouts = []
     for d in DAYS:
         for item in plan(d):
@@ -25,7 +25,7 @@ def build(pid, name, age, sex, menopause, habits, plan, daily, vo2, rhr, watch=T
     return {
         "id": pid, "name": name, "age": age, "sex": sex, "menopause_status": menopause,
         "habits": habits, "as_of": AS_OF.isoformat(), "watch_connected": watch,
-        "genome_report": f"{pid}.json", "calendar": "default.json",
+        "genome_report": f"{pid}.json", "calendar": calendar, "equipment": equipment,
         "workouts": workouts,
         "daily": [{"date": d.isoformat(), **daily(d)} for d in DAYS] if watch else [],
         "vo2max": vo2, "resting_hr": rhr,
@@ -56,14 +56,22 @@ def priya_plan(d):
     return [(10, "Walking", 20, 98)]
 
 
-def daily(steps, sleep):
-    return lambda d: {"steps": steps + (d.toordinal() * 37) % 900, "sleep_hours": round(sleep + ((d.toordinal() % 5) - 2) * 0.15, 2)}
+def daily(steps, sleep, onset):
+    """onset = typical sleep-onset "HH:MM" (what Apple Watch SleepAnalysis gives us)."""
+    h, m = map(int, onset.split(":"))
+    def f(d):
+        jitter = ((d.toordinal() % 5) - 2) * 6  # +/- 12 min
+        mins = (h * 60 + m + jitter) % (24 * 60)
+        return {"steps": steps + (d.toordinal() * 37) % 900,
+                "sleep_hours": round(sleep + ((d.toordinal() % 5) - 2) * 0.15, 2),
+                "sleep_onset": f"{mins // 60:02d}:{mins % 60:02d}"}
+    return f
 
 
 personas = [
-    build("margaret", "Margaret", 54, "female", "post", ["spin", "yoga"], margaret_plan, daily(7400, 6.4), 31.2, 62),
-    build("dan", "Dan", 36, "male", None, ["weights"], dan_plan, daily(4100, 5.9), 38.5, 70),
-    build("priya", "Priya", 68, "female", "post", ["walking"], priya_plan, daily(6200, 7.1), 24.0, 66),
+    build("margaret", "Margaret", 54, "female", "post", ["spin", "yoga"], margaret_plan, daily(7400, 6.4, "22:40"), 31.2, 62, equipment="none"),
+    build("dan", "Dan", 36, "male", None, ["weights"], dan_plan, daily(4100, 5.9, "22:10"), 38.5, 70, equipment="gym", calendar="dan.json"),
+    build("priya", "Priya", 68, "female", "post", ["walking"], priya_plan, daily(6200, 7.1, "21:50"), 24.0, 66, equipment="none", calendar="priya.json"),
     build("sam", "Sam", 45, "male", None, [], lambda d: [], None, None, None, watch=False),
 ]
 
@@ -99,8 +107,20 @@ for p in personas:
 
 # Weekly busy template (weekday -> busy [start,end] "HH:MM"). Works for any demo date.
 work = [["08:30", "12:30"], ["13:00", "17:45"]]
-cal = {"timezone": "Europe/London", "day_start": "07:00", "day_end": "21:00", "busy_by_weekday": {
+cal = {"timezone": "Europe/London", "day_start": "06:30", "day_end": "22:00", "busy_by_weekday": {
     "0": work + [["19:00", "20:30"]], "1": work, "2": work + [["18:00", "20:00"]],
     "3": work + [["17:45", "18:15"]], "4": work, "5": [["10:00", "13:00"]], "6": [["11:00", "16:00"]]}}
 (DATA / "calendar" / "default.json").write_text(json.dumps(cal, indent=1))
+
+# Dan: on site all day Friday (>=6h, no gaps -> afternoon card suppressed), kids until 21:00.
+onsite = [["07:30", "18:00"]]
+dan = {**cal, "busy_by_weekday": {**cal["busy_by_weekday"], "4": onsite + [["18:00", "21:00"]],
+                                   "0": work + [["18:00", "21:00"]], "2": work + [["18:00", "21:00"]]}}
+(DATA / "calendar" / "dan.json").write_text(json.dumps(dan, indent=1))
+
+# Priya: retired. Lunch club and a choir; afternoons mostly free.
+pri = {**cal, "busy_by_weekday": {str(i): [["12:00", "13:30"]] for i in range(7)}}
+# Packed Friday afternoon, but not one long absence: "looks full" path, not suppression.
+pri["busy_by_weekday"]["4"] = [["09:30", "11:00"], ["12:00", "14:00"], ["14:03", "17:29"], ["19:00", "20:30"]]
+(DATA / "calendar" / "priya.json").write_text(json.dumps(pri, indent=1))
 print("wrote", [p["id"] for p in personas])

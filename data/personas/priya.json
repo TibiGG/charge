@@ -10,7 +10,8 @@
  "as_of": "2026-09-18",
  "watch_connected": true,
  "genome_report": "priya.json",
- "calendar": "default.json",
+ "calendar": "priya.json",
+ "equipment": "none",
  "workouts": [
   {
    "type": "Walking",
@@ -101,72 +102,86 @@
   {
    "date": "2026-09-05",
    "steps": 6768,
-   "sleep_hours": 7.4
+   "sleep_hours": 7.4,
+   "sleep_onset": "22:02"
   },
   {
    "date": "2026-09-06",
    "steps": 6805,
-   "sleep_hours": 6.8
+   "sleep_hours": 6.8,
+   "sleep_onset": "21:38"
   },
   {
    "date": "2026-09-07",
    "steps": 6842,
-   "sleep_hours": 6.95
+   "sleep_hours": 6.95,
+   "sleep_onset": "21:44"
   },
   {
    "date": "2026-09-08",
    "steps": 6879,
-   "sleep_hours": 7.1
+   "sleep_hours": 7.1,
+   "sleep_onset": "21:50"
   },
   {
    "date": "2026-09-09",
    "steps": 6916,
-   "sleep_hours": 7.25
+   "sleep_hours": 7.25,
+   "sleep_onset": "21:56"
   },
   {
    "date": "2026-09-10",
    "steps": 6953,
-   "sleep_hours": 7.4
+   "sleep_hours": 7.4,
+   "sleep_onset": "22:02"
   },
   {
    "date": "2026-09-11",
    "steps": 6990,
-   "sleep_hours": 6.8
+   "sleep_hours": 6.8,
+   "sleep_onset": "21:38"
   },
   {
    "date": "2026-09-12",
    "steps": 7027,
-   "sleep_hours": 6.95
+   "sleep_hours": 6.95,
+   "sleep_onset": "21:44"
   },
   {
    "date": "2026-09-13",
    "steps": 7064,
-   "sleep_hours": 7.1
+   "sleep_hours": 7.1,
+   "sleep_onset": "21:50"
   },
   {
    "date": "2026-09-14",
    "steps": 6201,
-   "sleep_hours": 7.25
+   "sleep_hours": 7.25,
+   "sleep_onset": "21:56"
   },
   {
    "date": "2026-09-15",
    "steps": 6238,
-   "sleep_hours": 7.4
+   "sleep_hours": 7.4,
+   "sleep_onset": "22:02"
   },
   {
    "date": "2026-09-16",
    "steps": 6275,
-   "sleep_hours": 6.8
+   "sleep_hours": 6.8,
+   "sleep_onset": "21:38"
   },
   {
    "date": "2026-09-17",
    "steps": 6312,
-   "sleep_hours": 6.95
+   "sleep_hours": 6.95,
+   "sleep_onset": "21:44"
   },
   {
    "date": "2026-09-18",
    "steps": 6349,
-   "sleep_hours": 7.1
+   "sleep_hours": 7.1,
+   "sleep_onset": "21:50"
   }
  ],
  "vo2max": 24.0,

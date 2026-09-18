@@ -19,6 +19,13 @@ def test_no_certain_genomic_edge():
         assert p is not None and 0 < p < 1.0, f"{rid} has p={p}: nothing about a genome is certain"
 
 
+def test_sleep_rule_is_soft_and_cited_as_mixed():
+    ids = {rid: p for f, rid, p in engine.all_clause_ids()}
+    assert 0 < ids["r_sleep_evening"] < 1.0
+    src = engine.SOURCES[engine.RULES["r_sleep_evening"]["source_id"]]
+    assert src["certainty"] == "mixed"
+
+
 def test_every_recommend_rule_is_probabilistic_and_cited():
     for f, rid, p in engine.all_clause_ids():
         if f == "recommend":
