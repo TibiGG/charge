@@ -164,7 +164,8 @@
  "resting_hr": 70,
  "kit": {
   "home": [
-   "chair"
+   "chair",
+   "dumbbells"
   ],
   "gym": {
    "items": [

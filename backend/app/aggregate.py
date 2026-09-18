@@ -54,6 +54,62 @@ def is_vigorous(w: dict, age: int) -> bool:
     return bool(hr) and hr > 0.85 * (220 - age)
 
 
+# Manual log (Activity tab): what each kind of activity counts towards by default.
+# The person can change the ticks; an explicit `counts` list on a workout wins.
+MANUAL_TYPES = {
+    "Walking": {"label": "Walking", "counts": ["cardio"]},
+    "Running": {"label": "Running", "counts": ["cardio"]},
+    "Cycling": {"label": "Cycling", "counts": ["cardio"]},
+    "Swimming": {"label": "Swimming", "counts": ["cardio"]},
+    "Dance": {"label": "Dancing", "counts": ["cardio", "balance"]},
+    "TraditionalStrengthTraining": {"label": "Weights or muscle work", "counts": ["strength"]},
+    "CoreTraining": {"label": "Core work", "counts": ["strength"]},
+    "HighIntensityIntervalTraining": {"label": "Hard intervals (HIIT)", "counts": ["cardio", "peak"]},
+    "Yoga": {"label": "Yoga", "counts": ["mobility", "balance"]},
+    "Pilates": {"label": "Pilates", "counts": ["mobility"]},
+    "TaiChi": {"label": "Tai chi", "counts": ["balance"]},
+    "Flexibility": {"label": "Stretching", "counts": ["mobility"]},
+    "ImpactLoading": {"label": "Heel drops or stair steps", "counts": ["strength"]},
+}
+
+# Synthetic "new since last sync" watch workouts, so the demo can press Sync.
+WEARABLE_PENDING = {
+    "margaret": [{"type": "Walking", "start": "T07:10:00", "duration_min": 25, "mean_hr": 108},
+                 {"type": "Yoga", "start": "T07:40:00", "duration_min": 20, "mean_hr": 90}],
+    "priya": [{"type": "Walking", "start": "T08:00:00", "duration_min": 30, "mean_hr": 100}],
+    "dan": [{"type": "HighIntensityIntervalTraining", "start": "T06:45:00", "duration_min": 20, "mean_hr": 172}],
+    "sam": [],
+}
+
+
+def counts_for(w: dict, age: int) -> list[str]:
+    """Which batteries one workout fills. Explicit ticks (manual log) win over the type."""
+    if w.get("counts") is not None:
+        return [c for c in w["counts"] if c in BATTERY_ORDER]
+    t, out = w["type"], []
+    if t in STRENGTH_TYPES:
+        out.append("strength")
+    if t in CARDIO_TYPES:
+        out.append("cardio")
+        if is_vigorous(w, age):
+            out.append("peak")
+    if t in BALANCE_FULL or t in BALANCE_PARTIAL:
+        out.append("balance")
+    if t in MOBILITY_TYPES:
+        out.append("mobility")
+    return out
+
+
+def with_extra(p: dict, logs: list[dict] | None, synced: bool) -> dict:
+    """The persona plus synced watch workouts and the person's own logs (sent by the browser)."""
+    extra = []
+    if synced:
+        extra += [{**w, "start": p["as_of"] + w["start"], "source": "watch", "synced": True}
+                  for w in WEARABLE_PENDING.get(p["id"], [])]
+    extra += [{**w, "source": "you"} for w in (logs or [])]
+    return {**p, "workouts": p["workouts"] + extra} if extra else p
+
+
 def window_metrics(workouts: list[dict], age: int, start: date, end: date) -> dict:
     """Metrics over [start, end] inclusive."""
     strength_days, mobility_days, balance = set(), set(), {}
@@ -63,6 +119,19 @@ def window_metrics(workouts: list[dict], age: int, start: date, end: date) -> di
         if not (start <= d <= end):
             continue
         t, mins = w["type"], float(w["duration_min"])
+        if w.get("counts") is not None:  # the person's own ticks from the Activity tab
+            c = counts_for(w, age)
+            if "strength" in c:
+                strength_days.add(d)
+            if "peak" in c:
+                vigorous += mins
+            elif "cardio" in c:
+                moderate += mins
+            if "mobility" in c:
+                mobility_days.add(d)
+            if "balance" in c:
+                balance[d] = 1.0
+            continue
         if t in STRENGTH_TYPES:
             strength_days.add(d)
         if t in CARDIO_TYPES:

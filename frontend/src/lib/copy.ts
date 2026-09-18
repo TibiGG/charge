@@ -157,6 +157,39 @@ export const COPY = {
 		seatedWhy: 'You picked the seated one. It works the same batteries, so the reasons below still hold.'
 	},
 
+	activity: {
+		title: 'Your activity',
+		intro: 'Everything that fills your batteries. It comes from your watch, or you can add it.',
+		sync: 'Sync my watch',
+		syncing: 'Syncing…',
+		synced: 'Your watch is up to date.',
+		found: 'new from your watch',
+		unsync: 'Undo the sync',
+		add: 'Add something you did',
+		what: 'What did you do?',
+		when: 'When',
+		howLong: 'How long, in minutes',
+		effort: 'How hard was it?',
+		easy: 'Easy',
+		moderate: 'Could still talk',
+		hard: 'Could only say a few words',
+		counts: 'Which batteries should it fill?',
+		countsHint: 'We ticked what this usually fills. You know best, so change it if you like.',
+		note: 'Note (if you like)',
+		change: 'What this will change',
+		noChange: 'This will not change your batteries. Tick at least one.',
+		save: 'Add it',
+		saved: 'Added. Your batteries now include it.',
+		seeBatteries: 'See my batteries',
+		list: 'This week and last week',
+		fromWatch: 'Watch',
+		fromYou: 'You added this',
+		fills: 'Fills',
+		nothing: 'Fills none',
+		remove: 'Remove',
+		olderThanWeek: 'Last week'
+	},
+
 	user: {
 		title: 'About you',
 		intro: 'This is what we use to pick your ideas. Change anything. It stays on this device.',
@@ -199,7 +232,7 @@ export const COPY = {
 	},
 	genetic: "This nudges your starting point. It doesn't tell you what will happen.",
 	latency: 'Time to answer',
-	nav: { home: 'Batteries', today: 'Today', ask: 'Ask', user: 'User' }
+	nav: { home: 'Batteries', today: 'Today', ask: 'Ask', activity: 'Activity', user: 'User' }
 } as const;
 
 export type BatteryId = keyof typeof COPY.batteries;

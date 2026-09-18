@@ -12,7 +12,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app import aggregate, scope_guard
-from app.aggregate import SOURCES, TARGETS, compute_batteries, load_persona
+from app.aggregate import (BATTERY_ORDER, MANUAL_TYPES, SOURCES, WEARABLE_PENDING, TARGETS, compute_batteries, counts_for,
+                           load_persona, with_extra)
 from app.day import CATALOG, GYM_DEFAULT, KIT_WORDS, TIERS, plan_day_with_timeout, resolve_kit
 from app.render import GENETIC_FRAME, observation_sentence
 from app.schedule import DAYPARTS, daypart_of, load_calendar, slot_for
@@ -60,10 +61,38 @@ def sources():
     return SOURCES
 
 
+ISO = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?")
+
+
+def _parse_logs(raw: str | None) -> list[dict]:
+    """Manual logs from the Activity tab (kept in the browser, sent with each request)."""
+    if not raw:
+        return []
+    try:
+        out = []
+        for w in json.loads(raw)[:50]:
+            if w.get("type") not in MANUAL_TYPES or not ISO.fullmatch(w.get("start", "")):
+                continue
+            mins = float(w.get("duration_min", 0))
+            if not 1 <= mins <= 600:
+                continue
+            out.append({"id": str(w.get("id", ""))[:40], "type": w["type"], "start": w["start"][:19],
+                        "duration_min": mins, "effort": w.get("effort") if w.get("effort") in ("easy", "moderate", "hard") else "moderate",
+                        "counts": [c for c in w.get("counts", MANUAL_TYPES[w["type"]]["counts"]) if c in BATTERY_ORDER],
+                        "note": str(w.get("note", ""))[:80]})
+        return out
+    except (ValueError, TypeError, AttributeError):
+        raise HTTPException(422, "logs must be a JSON list")
+
+
+def _persona_with(pid: str, logs: str | None, synced: bool) -> dict:
+    return with_extra(_persona_or_404(pid), _parse_logs(logs), synced)
+
+
 @app.get("/api/batteries/{pid}")
-def batteries(pid: str):
+def batteries(pid: str, logs: str | None = None, synced: bool = False):
     t = time.perf_counter()
-    p = _persona_or_404(pid)
+    p = _persona_with(pid, logs, synced)
     b = compute_batteries(p)
     for x in b["batteries"]:
         x["said"] = observation_sentence(x["id"], x["value"], x["target"])
@@ -95,6 +124,25 @@ def _parse_kit(raw: str | None) -> dict | None:
         raise HTTPException(422, "kit must be JSON like {\"home\": [\"mat\"], \"gym\": null}")
 
 
+@app.get("/api/activity/{pid}")
+def activity(pid: str, logs: str | None = None, synced: bool = False):
+    """Everything in the 14-day window, newest first, with what each one filled."""
+    p = _persona_with(pid, logs, synced)
+    b = compute_batteries(p)
+    start = b["window"]["start"]
+    items = [{"type": w["type"], "label": MANUAL_TYPES.get(w["type"], {}).get("label", w["type"]),
+              "start": w["start"], "duration_min": w["duration_min"], "mean_hr": w.get("mean_hr"),
+              "source": w.get("source", "watch"), "synced": w.get("synced", False), "id": w.get("id"),
+              "effort": w.get("effort"), "note": w.get("note"),
+              "counts": counts_for(w, p["age"]), "in_window": w["start"][:10] >= start}
+             for w in p["workouts"]]
+    items.sort(key=lambda x: x["start"], reverse=True)
+    return {"as_of": p["as_of"], "window": b["window"], "items": items,
+            "pending_sync": 0 if synced else len(WEARABLE_PENDING.get(pid, [])),
+            "types": MANUAL_TYPES, "targets": {k: {"label": v["label"], "target": v["target"], "unit": v["unit"],
+                                                   "metric": v["metric"]} for k, v in TARGETS.items()}}
+
+
 @app.get("/api/profile/{pid}")
 def profile(pid: str):
     """Everything the User tab can change, with what we'd use if they change nothing."""
@@ -107,7 +155,7 @@ def profile(pid: str):
 @app.get("/api/today/{pid}")
 def today(pid: str, at: str | None = None, equipment: str | None = None, override_sleep: bool = False,
           more: str = "", less: str = "", kit: str | None = None, age: int | None = None,
-          habits: str | None = None):
+          habits: str | None = None, logs: str | None = None, synced: bool = False):
     """Three daypart cards. `at` = the viewer's local HH:MM (the demo can pin it).
     `more` / `less` = comma-separated activity ids the person voted on (stored in their browser)."""
     p = _persona_or_404(pid)
@@ -127,6 +175,8 @@ def today(pid: str, at: str | None = None, equipment: str | None = None, overrid
         over["age"] = age
     if habits is not None:
         over["habits"] = [h for h in habits.split(",") if h in HABITS]
+    if logs or synced:  # their own logs + watch sync change the batteries, so the plan too
+        over["workouts"] = _persona_with(pid, logs, synced)["workouts"]
     return plan_day_with_timeout(pid, at=at, tier=equipment, override_sleep=override_sleep, taste=taste,
                                  kit=_parse_kit(kit), persona_overrides=over)
 

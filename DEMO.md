@@ -1,51 +1,53 @@
-# Charge: 2-minute demo
+# Charge: 2-minute demo (current as of the three-card Today, Activity and User tabs)
 
 ```bash
 make demo          # API :8000 + UI :5173
 make test          # the 5 judged constraints, as tests
 ```
 
-Open **http://localhost:5173/?p=margaret**. Before going on stage, reset any live watch samples:
-`curl -X DELETE localhost:8000/api/ingest/sample`
+Open **http://localhost:5173/?p=margaret**.
 
 ---
 
-## Click path (≈2 min)
+## Click path (≈2 min, Margaret, 54)
 
-**0:00 Batteries (`/`), Margaret, 54**
-- "Margaret has a Bupa MY Genomic Health report and an Apple Watch. These are her five batteries."
-- Point at **Cardio endurance: Topped up**. She spins three times a week.
-- "Her charge is set by her **emptiest** battery, not her average. Spin can't make up for zero strength work."
-- "There's no streak to break. Each battery covers the last 7 days, so a sick week doesn't punish you."
-- Tap **Flexibility & mobility**. The sheet says "This aim is our weakest one" and the source chip reads **COMMERCIAL PROTOCOL**.
-  "We show that openly. It proves the source tracking is real."
-- Close the sheet. Tap **Read aloud** (lands well).
+Before going on stage, clear this browser's demo state (votes, logs, kit, sync) from the browser console:
+`localStorage.clear()`. Pin the time of day with `?at=` if you need a fixed demo, e.g. `/today?at=08:00`.
 
-**0:35 "What should I do today?" (`/today`)**
-- "One thing: **Power yoga with small hops**, 25 minutes, *Friday 5:45pm, when you're free*."
-- "She already does yoga, so we adapted her habit. We didn't tell a 54-year-old to start weightlifting."
-- Video: **Royal Osteoporosis Society**, from our curated shelf. "No YouTube search at runtime. Unvetted content can't be cited."
-- "How sure are we? *We're confident this would help you (0.86)*." The genetics line is always shown:
+**0:00 Batteries (`/?p=margaret`)**
+- "Five batteries from her Apple Watch. Her charge is set by her **emptiest** one, not her average."
+- Strength: **Room to grow**, 0 of 2 days. Cardio: **Topped up**, because she spins. "Spin can't make up for zero strength work."
+- "No streak to break. Each battery looks at the last 7 days."
+
+**0:25 Today (`/today`)**
+- Three cards: **Morning · Afternoon · Evening**. Only the current one has a button, so there's one action on screen.
+- At 08:00: **Your yoga, with heel drops added**, 25 min. "We adapted her habit instead of starting something new."
+- "How sure are we? *We're confident this would help you (0.86)*." The genetics line is always there:
   *This nudges your starting point. It doesn't tell you what will happen.*
-- Point at the **latency badge**.
+- Open **Why this?** (inside the card; every recommended activity has one, always). Walk it:
+  0 strength days vs WHO's 2 → COL1A1 (peer-reviewed) + post-menopause + Bupa report → bone loading (Royal Osteoporosis Society) → she does yoga.
+- Open **Check the logic**: the real ProbLog query, proofs, rules and facts. "Verifiable, not just claimed."
+- Earlier/later cards are dimmed. **Take a look** opens them to read, with no button.
 
-**1:05 "Why this?"** (or open `/today#why` directly)
-- Walk the tree from the bottom up:
-  0 strength days vs WHO's 2 → COL1A1 (GENOMOS, *peer-reviewed*) + post-menopause + Bupa PRS band →
-  "loading your bones": Royal Osteoporosis Society → she does yoga → power yoga.
-- Every node has a source chip with its evidence grade.
-- Open **"The exact steps our checker took"**. These are the **real ProbLog proofs**
-  (KBest explain). The disjoint proofs sum to 0.86. "Verifiable, not just claimed."
+**1:00 She's in charge**
+- Tap **Less like this** → the pick changes (chair squats). "Her vote is an argument against that activity; it goes into the logic."
+- (Optional) **User** tab → untick *a yoga mat* → **Save** → Today: "We left out 5 other ideas because you told us you don't have a yoga mat…"
 
-**1:35 Ask (`/ask`)**
-- Tap *"How can I get stronger?"* → a sourced answer.
-- Tap *"I have chest pain when I run"* → **I can't help with that one.** → *Talk to someone now* → 999/111.
-- "Default-deny. A regex red-flag layer that nothing can overrule, then an allow-list, then decline.
-  The refusal never explains itself in clinical terms, because that would be a health claim too."
+**1:25 Activity (`/activity`)**
+- Tap **Weights or muscle work**, 30 min. Before saving, the preview shows **Strength 0 → 1 / 2 days a week**. The ticks are hers to change.
+- **Add it** → **See my batteries** → Strength is now **Ticking over**.
+- (Optional) **Sync my watch** → 2 new watch workouts → Cardio, Balance and Flexibility move.
 
-**1:55 Close.** Switch the persona dropdown to **Dan** (lifts, no cardio → *Weights, then a 20 minute ride*)
-or **Priya, 68** (age alone triggers the balance rule → *your daily walk, with balance moves*).
-**Sam** shows the no-watch onboarding.
+**1:45 Ask (`/ask`)**
+- Tap *"I have chest pain when I run"* → **I can't help with that one.** → a Bupa health adviser → 999/111.
+- "Default-deny. The refusal never explains itself in clinical terms."
+
+**Optional beats**
+- **Dan, 19:30** (`/today?p=dan&at=19:30`): *A gentler option this evening* · **Mixed evidence** · Sports Medicine 2019 →
+  **Give me the harder one instead**. "We never overrule someone on mixed evidence."
+- **Margaret, 13:00**: "Your afternoon looks full. Here's a 5-minute one…". It still has a full *Why this?*.
+- **Dan, 13:00**: busy all afternoon → "We'll leave you be." Not nagging is a feature.
+- **Sam** shows the no-watch onboarding.
 
 ---
 
@@ -62,10 +64,11 @@ or **Priya, 68** (age alone triggers the balance rule → *your daily walk, with
 
 | | |
 |---|---|
-| Full pipeline p95 (20 runs) | ≈0.2s (test asserts < 4s) |
-| Copy reading level | Flesch–Kincaid grade ≈1.4 (test asserts ≤ 6) |
+| Whole day plan (3 cards, with proofs) | ≈0.3–0.5s locally (test asserts p95 < 4s) |
+| Copy reading level | Flesch–Kincaid grade ≈2.8 (test asserts ≤ 6) |
 | Scope-guard fixture | 25 in-scope answered, 27 out-of-scope → 100% routed to a human |
-| Sources | 13, each graded: clinical guideline / peer-reviewed / commercial protocol |
+| Sources | 14, each graded: clinical guideline / peer-reviewed / commercial protocol |
+| Tests | 92, incl. "every recommended activity always has a why + logic" over every person × time × kit × vote |
 
 ## Live watch → vial (stretch)
 

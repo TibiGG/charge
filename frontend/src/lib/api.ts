@@ -15,7 +15,8 @@ async function timed<T>(path: string, init?: RequestInit): Promise<Timed<T>> {
 
 export const api = {
 	personas: () => timed<any>('/api/personas'),
-	batteries: (p: string) => timed<any>(`/api/batteries/${p}`),
+	batteries: (p: string, extraLogs: ActivityLog[] = []) => timed<any>(`/api/batteries/${p}?${activityQs(p, extraLogs)}`),
+	activity: (p: string) => timed<any>(`/api/activity/${p}?${activityQs(p)}`),
 	profile: (p: string) => timed<any>(`/api/profile/${p}`),
 	today: (p: string, q: { at?: string; equipment?: string; override_sleep?: boolean; taste?: Taste; profile?: Profile } = {}) => {
 		const qs = new URLSearchParams();
@@ -28,6 +29,7 @@ export const api = {
 		if (q.profile?.kit) qs.set('kit', JSON.stringify(q.profile.kit));
 		if (q.profile?.age) qs.set('age', String(q.profile.age));
 		if (q.profile?.habits) qs.set('habits', q.profile.habits.join(','));
+		for (const [k, v] of activityQs(p)) qs.set(k, v);
 		return timed<any>(`/api/today/${p}?${qs}`);
 	},
 	sources: () => timed<any>('/api/sources'),
@@ -110,4 +112,30 @@ export function getProfile(p: string): Profile {
 
 export function setProfile(p: string, v: Profile) {
 	try { localStorage.setItem(`profile:${p}`, JSON.stringify(v)); } catch {}
+}
+
+/** Activity tab: their own logs + whether they have synced the watch. Kept in this browser. */
+export type ActivityLog = { id: string; type: string; start: string; duration_min: number;
+	effort: 'easy' | 'moderate' | 'hard'; counts: string[]; note?: string };
+
+export function getLogs(p: string): ActivityLog[] {
+	try { return JSON.parse(localStorage.getItem(`logs:${p}`) ?? '[]'); } catch { return []; }
+}
+export function setLogs(p: string, v: ActivityLog[]) {
+	try { localStorage.setItem(`logs:${p}`, JSON.stringify(v)); } catch {}
+}
+export function getSynced(p: string): boolean {
+	try { return localStorage.getItem(`synced:${p}`) === '1'; } catch { return false; }
+}
+export function setSynced(p: string, v: boolean) {
+	try { v ? localStorage.setItem(`synced:${p}`, '1') : localStorage.removeItem(`synced:${p}`); } catch {}
+}
+
+function activityQs(p: string, extra: ActivityLog[] = []): URLSearchParams {
+	const qs = new URLSearchParams();
+	if (typeof window === 'undefined') return qs;
+	const logs = [...getLogs(p), ...extra];
+	if (logs.length) qs.set('logs', JSON.stringify(logs));
+	if (getSynced(p)) qs.set('synced', 'true');
+	return qs;
 }

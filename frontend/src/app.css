@@ -230,3 +230,23 @@ details.daypart.inspect[open] .look { display: none; }
 .window label { display: flex; flex-direction: column; gap: 4px; font-weight: 700; }
 .window .grow { flex: 1 1 180px; }
 .window .grow input { width: 100%; }
+
+/* ---- Activity tab ---- */
+.type-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin: 8px 0 12px; }
+.small-btn { min-height: 56px; font-size: .95rem; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 420px) { .row2 { grid-template-columns: 1fr; } }
+.delta { list-style: none; padding: 0; margin: 8px 0 14px; }
+.delta li { display: grid; grid-template-columns: 22px 1fr; grid-template-areas: 'i n' 'b b' 'v v'; gap: 2px 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); opacity: .7; }
+.delta li.moved { opacity: 1; font-weight: 700; }
+.delta .dname { grid-area: n; }
+.delta .bar { grid-area: b; position: relative; height: 12px; border-radius: 999px; background: var(--glass); overflow: hidden; }
+.delta .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; transition: width .6s ease; }
+.delta .fill.now { background: var(--mid); }
+.delta .fill.was { background: var(--full); z-index: 1; }
+.delta .num { grid-area: v; font-size: .95rem; font-variant-numeric: tabular-nums; }
+.changed { border: 2px solid var(--full); }
+.log-list { list-style: none; padding: 0; }
+.log-list li { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.log-list li.old { opacity: .6; }
+.log-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
