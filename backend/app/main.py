@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 from app import aggregate, scope_guard
 from app.aggregate import SOURCES, TARGETS, compute_batteries, load_persona
-from app.day import TIERS, plan_day_with_timeout
+from app.day import CATALOG, TIERS, plan_day_with_timeout
 from app.render import GENETIC_FRAME, observation_sentence
 from app.schedule import DAYPARTS, daypart_of, load_calendar, slot_for
 from reasoner import engine
@@ -68,13 +68,15 @@ def batteries(pid: str):
         x["said"] = observation_sentence(x["id"], x["value"], x["target"])
         x["source"] = SOURCES[x["source_id"]]
     return {"persona": {"id": p["id"], "name": p["name"], "age": p["age"],
-                        "watch_connected": p["watch_connected"]},
+                        "watch_connected": p["watch_connected"], "equipment": p.get("equipment", "none")},
             **b, "timings_ms": {"total": round((time.perf_counter() - t) * 1000, 1)}}
 
 
 @app.get("/api/today/{pid}")
-def today(pid: str, at: str | None = None, equipment: str | None = None, override_sleep: bool = False):
-    """Three daypart cards. `at` = the viewer's local HH:MM (the demo can pin it)."""
+def today(pid: str, at: str | None = None, equipment: str | None = None, override_sleep: bool = False,
+          more: str = "", less: str = ""):
+    """Three daypart cards. `at` = the viewer's local HH:MM (the demo can pin it).
+    `more` / `less` = comma-separated activity ids the person voted on (stored in their browser)."""
     p = _persona_or_404(pid)
     if not p["watch_connected"]:
         raise HTTPException(409, "no watch connected")
@@ -82,7 +84,10 @@ def today(pid: str, at: str | None = None, equipment: str | None = None, overrid
         raise HTTPException(422, "at must be HH:MM")
     if equipment is not None and equipment not in TIERS:
         raise HTTPException(422, "equipment must be none, home or gym")
-    return plan_day_with_timeout(pid, at=at, tier=equipment, override_sleep=override_sleep)
+    ids = {a["id"] for a in CATALOG}
+    taste = {k: "more" for k in more.split(",") if k in ids}
+    taste |= {k: "less" for k in less.split(",") if k in ids}
+    return plan_day_with_timeout(pid, at=at, tier=equipment, override_sleep=override_sleep, taste=taste)
 
 
 class RecommendIn(BaseModel):

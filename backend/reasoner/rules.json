@@ -192,5 +192,25 @@
    "not user_override(sleep)"
   ],
   "source_id": "src_stutz_2019_evening_exercise"
+ },
+ "p_taste_less": {
+  "kind": "preference",
+  "health_claim": false,
+  "head": "You asked for less like this, so it ranks lower.",
+  "body": [
+   "user_taste(less, activity)"
+  ],
+  "source_id": null,
+  "design_note": "Your own likes and dislikes change the order. That is your choice, not a health claim."
+ },
+ "p_taste_kind": {
+  "kind": "preference",
+  "health_claim": false,
+  "head": "You asked for less of a few things like this, so this kind ranks a bit lower.",
+  "body": [
+   "2+ user_taste(less, activity of this kind)"
+  ],
+  "source_id": null,
+  "design_note": "When you turn down a few of the same kind, we learn from that. It is your choice, not a health claim."
  }
 }

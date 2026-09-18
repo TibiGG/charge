@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api, getPersona } from '$lib/api';
+	import { api, getPersona, getEquipment, setEquipment } from '$lib/api';
 	import { COPY, type BatteryId } from '$lib/copy';
 	import Vial from '$lib/Vial.svelte';
 	import Speak from '$lib/Speak.svelte';
@@ -8,6 +8,7 @@
 	import Latency from '$lib/Latency.svelte';
 	import Meaning from '$lib/Meaning.svelte';
 	import Icon from '$lib/Icon.svelte';
+	import EquipmentPicker from '$lib/EquipmentPicker.svelte';
 
 	let data = $state<any>(null);
 	let open = $state<any>(null);
@@ -15,12 +16,21 @@
 	let err = $state('');
 	let uploading = $state(false);
 	let dialog: HTMLDialogElement | undefined = $state();
+	let chosen = $state<string | null>(null);
+	// Their own pick wins; otherwise what we know about them from sign-up.
+	const equipment = $derived(chosen ?? data?.persona?.equipment ?? 'none');
+
+	function pickEquipment(v: string) {
+		chosen = v;
+		setEquipment(persona, v);
+	}
 
 	async function load() {
 		try { data = await api.batteries(persona); } catch (e) { err = String(e); }
 	}
 	onMount(() => {
 		persona = getPersona();
+		chosen = getEquipment(persona);
 		load();
 		// Live watch samples: poll gently so a tap on the watch fills the vial on screen.
 		const t = setInterval(load, 3000);
@@ -81,6 +91,8 @@
 		{/each}
 	</section>
 	<p class="hint">{COPY.tapVial}</p>
+
+	<EquipmentPicker value={equipment} onchange={pickEquipment} />
 
 	<a class="primary" href="/today">{COPY.primaryToday}</a>
 {:else}

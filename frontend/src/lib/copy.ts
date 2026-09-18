@@ -105,6 +105,51 @@ export const COPY = {
 		working: 'Reading your file…'
 	},
 
+	dayparts: {
+		morning: 'Morning',
+		afternoon: 'Afternoon',
+		evening: 'Evening',
+		now: 'Now',
+		later: 'Later',
+		earlier: 'Earlier',
+		lateNight: "It's late. Rest well. Here's what tomorrow could look like."
+	},
+
+	equipment: {
+		title: 'What do you have?',
+		hint: 'You can change this any time.',
+		gym: 'I go to a gym',
+		home: 'I have some kit at home',
+		none: 'Just me and some space'
+	},
+
+	day: {
+		title: 'Your day',
+		intro: 'One idea for each part of the day. Only the one for now has a button.',
+		gotIt: 'Got it',
+		whyContext: 'Why now, and why this one',
+		ourChoice: 'Our choice, not a health claim',
+		mixed: 'Mixed evidence',
+		ranking: 'What else we looked at',
+		steps: 'How to do it',
+		harderChosen: 'You picked the harder one. That is your call.',
+		backToGentle: 'Go back to the gentler one',
+		loading: 'Working out your day…',
+		noise: 'Noise',
+		canSit: 'You can sit for this.',
+		tryAgain: 'Try again',
+		look: 'Take a look',
+		lookEarlier: 'This was the idea for earlier. You can still read it.',
+		lookLater: 'This is the plan for later. Its button shows up then.',
+		moreLike: 'More like this',
+		lessLike: 'Less like this',
+		votedMore: "Thanks. We'll show you more like this.",
+		votedLess: "Thanks. We'll show you less like this.",
+		voteCleared: "Okay. We've undone that."
+	},
+
+	offline: "We can't reach Charge right now. Please try again in a moment.",
+
 	meaning: 'What does this mean?',
 	readAloud: 'Read aloud',
 	stop: 'Stop',

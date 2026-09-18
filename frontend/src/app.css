@@ -168,3 +168,46 @@ textarea { width: 100%; font: inherit; font-size: 1.15rem; padding: 14px; border
 @media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
 
 .charge-line { font-size: 1.15rem; }
+
+/* ---- /today: three daypart cards. Only the live one is full-colour with an action. ---- */
+.daypart.dim { display: flex; gap: 14px; align-items: center; opacity: .62; background: var(--glass); border-style: dashed; }
+.daypart.dim .preview { margin: 2px 0 0; font-size: 1.05rem; }
+.daypart.live { border: 2px solid var(--brand); }
+.daypart .eyebrow { display: flex; gap: 6px; align-items: center; }
+.notice { font-size: 1.15rem; font-weight: 700; padding: 12px 14px; border-radius: 14px; background: var(--glass); }
+.steps-title { font-size: 1.1rem; margin: 16px 0 4px; }
+.mixed { margin: 14px 0; padding: 14px 16px; border-radius: 14px; border-left: 4px solid var(--mid); background: var(--glass); }
+.mixed h2 { margin: 0 0 6px; font-size: 1.15rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.mixed .secondary { margin-top: 10px; }
+.mixed-tag { background: var(--surface); border: 1px solid var(--mid); }
+.choice-tag { background: var(--surface); border: 1px solid var(--line); font-weight: 600; }
+.context { list-style: none; padding: 0; }
+.context .ctx { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.context .ctx p { margin: 0 0 6px; }
+
+/* ---- Equipment: three big buttons on /, always visible, no settings menu ---- */
+.equip { border: 0; padding: 0; margin: 20px 0; }
+.equip legend { font-weight: 800; font-size: 1.15rem; margin-bottom: 8px; }
+.equip-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.equip-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 96px;
+	padding: 10px 6px; border-radius: var(--radius); border: 2px solid var(--line); background: var(--surface); color: var(--ink);
+	font: inherit; font-weight: 700; font-size: 1rem; line-height: 1.2; text-align: center; cursor: pointer; }
+.equip-btn[aria-pressed='true'] { border-color: var(--brand); background: var(--glass); box-shadow: inset 0 0 0 1px var(--brand); }
+.small { font-size: .95rem; }
+@media (max-width: 420px) { .equip-row { grid-template-columns: 1fr; } .equip-btn { flex-direction: row; min-height: 64px; justify-content: flex-start; padding: 10px 16px; } }
+
+/* ---- Earlier / later cards open up to read, but never get a button ---- */
+details.daypart.inspect { display: block; }
+details.daypart.inspect > summary { display: flex; gap: 14px; align-items: center; cursor: pointer; list-style: none; min-height: 48px; }
+details.daypart.inspect > summary::-webkit-details-marker { display: none; }
+details.daypart.inspect .summary-text { display: flex; flex-direction: column; gap: 2px; }
+details.daypart.inspect .look { color: var(--brand); font-weight: 700; text-decoration: underline; }
+details.daypart.inspect[open] { opacity: 1; background: var(--surface); }
+details.daypart.inspect[open] .look { display: none; }
+.inspect-body { margin-top: 10px; }
+.inspect-body .whybox { margin: 12px 0 0; }
+
+/* ---- More / less like this ---- */
+.votes { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
+.vote { min-height: 48px; padding: 8px 16px; border-radius: 999px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 700; }
+.vote[aria-pressed='true'] { border-color: var(--brand); background: var(--glass); }

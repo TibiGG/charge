@@ -221,8 +221,11 @@ def all_clause_ids() -> list[tuple[str, str, float | str]]:
 # ---------- Dayparts: candidates in, winner + provenance out ----------
 
 def candidate_facts(cands: list[dict], daypart: str, deficits: dict[str, float],
-                    bedtime_min: int | None, override_sleep: bool) -> str:
+                    bedtime_min: int | None, override_sleep: bool, taste: dict[str, str] | None = None,
+                    kind_less: set[str] | None = None) -> str:
     lines = [f"now_daypart({daypart})."]
+    lines += [f"user_taste({v}, {_atom(a)})." for a, v in sorted((taste or {}).items()) if v in ("more", "less")]
+    lines += [f"kind_taste(less, {k})." for k in sorted(kind_less or ())]
     lines += [f"deficit({b}, {max(0.0, min(1.0, w)):.3f})." for b, w in deficits.items()]
     if bedtime_min is not None:  # no sleep data -> no bedtime -> sleep rule cannot fire
         lines.append(f"bedtime_min(u1, {bedtime_min}).")

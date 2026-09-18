@@ -72,3 +72,28 @@ def test_real_proofs_returned_for_pitch_persona():
     assert all("rule r_adapt_yoga" in pr["uses"] for pr in proofs)
     # Disjoint proofs sum to the query probability.
     assert abs(sum(pr["p"] for pr in proofs) - 0.8594) < 0.01
+
+
+# ---- "More / less like this": votes are arguments about one activity ----
+
+def test_less_vote_attacks_that_activity_only():
+    from app.day import plan_day
+    base = plan_day("margaret", at="08:00")["cards"][0]
+    top = base["activity"]["id"]
+    after = plan_day("margaret", at="08:00", taste={top: "less"})["cards"][0]
+    assert after["activity"]["id"] != top
+    # a soft nudge, never a block: it is still ranked
+    assert top in {r["id"] for r in after["ranking"]} or len(after["ranking"]) >= 8
+
+
+def test_more_vote_supports_like_a_habit():
+    from app.day import plan_day
+    rank = lambda t: {r["id"]: r["score"] for r in plan_day("margaret", at="08:00", taste=t)["cards"][0]["ranking"]}
+    before, after = rank(None), rank({"chair_workout": "more"})
+    assert after["chair_workout"] > before["chair_workout"]
+
+
+def test_two_less_votes_on_a_kind_learn_a_weaker_attack_on_that_kind():
+    from app.day import kinds_disliked
+    assert kinds_disliked({"chair_squats": "less"}) == set()
+    assert kinds_disliked({"chair_squats": "less", "chair_workout": "less"}) == {"strength_training"}

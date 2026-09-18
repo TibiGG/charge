@@ -25,6 +25,7 @@ log = logging.getLogger("charge.day")
 CATALOG: list[dict] = json.loads((DATA / "catalog.json").read_text())["activities"]
 TIERS = {"none", "home", "gym"}
 TOP_K = 8
+KIND_LEARN_AT = 2  # "less" votes on one kind before we learn to rank that whole kind lower
 TIMEOUT_S = 6.0
 
 DAYPART_LABEL = {"morning": "Morning", "afternoon": "Afternoon", "evening": "Evening"}
@@ -74,13 +75,24 @@ def _video(a: dict) -> dict | None:
 
 
 def _activity_view(a: dict, tier: str) -> dict:
-    return {"id": a["id"], "title": a["title"], "minutes": a["duration_min"], "batteries": a["batteries"],
+    return {"id": a["id"], "action": a["action"], "title": a["title"], "minutes": a["duration_min"], "batteries": a["batteries"],
             "intensity": a["intensity"], "noise_level": a["noise_level"], "noise_text": NOISE_TEXT[a["noise_level"]],
             "seated_option": a["seated_option"], "steps": a["steps"], "video": _video(a),
             "equipment_text": TIER_TEXT["none" if "none" in a["equipment"] else tier]}
 
 
-def _prefilter(tier: str, daypart: str, helps: dict, fills: dict, habits: set, exclude: set) -> list[dict]:
+def kinds_disliked(taste: dict | None) -> set[str]:
+    """Kinds of activity the person has turned down KIND_LEARN_AT+ times."""
+    by_id = {a["id"]: a["action"] for a in CATALOG}
+    n: dict[str, int] = {}
+    for aid, v in (taste or {}).items():
+        if v == "less" and aid in by_id:
+            n[by_id[aid]] = n.get(by_id[aid], 0) + 1
+    return {k for k, c in n.items() if c >= KIND_LEARN_AT}
+
+
+def _prefilter(tier: str, daypart: str, helps: dict, fills: dict, habits: set, exclude: set,
+               taste: dict | None = None, kind_less: set | None = None) -> list[dict]:
     """Hard gates except the calendar: tier, daypart, evidence > 0, not already suggested today."""
     out = []
     for a in CATALOG:
@@ -90,9 +102,12 @@ def _prefilter(tier: str, daypart: str, helps: dict, fills: dict, habits: set, e
         if p <= 0:
             continue
         primary = max(a["batteries"], key=lambda b: 1 - fills[b])
-        habit = 1.0 if habits & set(a["habits"]) else 0.87
+        vote = (taste or {}).get(a["id"])
+        habit = 1.0 if habits & set(a["habits"]) or vote == "more" else 0.87
+        # mirrors p_taste_less / p_taste_kind in model.pl
+        liked = 0.4 if vote == "less" else 0.7 if a["action"] in (kind_less or ()) else 1.0
         out.append({**a, "primary_battery": primary, "p_evidence": p,
-                    "prescore": (1 - fills[primary]) * p * habit})
+                    "prescore": (1 - fills[primary]) * p * habit * liked})
     return sorted(out, key=lambda c: -c["prescore"])
 
 
@@ -113,7 +128,8 @@ def _sources_for(nodes: list) -> dict:
 
 
 def _context(c: dict, daypart: str, slot: dict | None, batteries: dict, persona: dict, tier: str,
-             result: dict | None, override: bool) -> list[dict]:
+             result: dict | None, override: bool, taste: dict | None = None,
+             kind_less: set | None = None) -> list[dict]:
     """The daypart half of the derivation: why THIS activity at THIS time."""
     b = next(x for x in batteries["batteries"] if x["id"] == c["primary_battery"])
     nodes = [{"kind": "need", "text": fact_sentence({"kind": "observation", "battery": b["id"], "value": b["value"],
@@ -127,6 +143,16 @@ def _context(c: dict, daypart: str, slot: dict | None, batteries: dict, persona:
         h = sorted(match)[0]
         nodes.append({"kind": "habit", "health_claim": False, "source_id": None,
                       "text": f"It builds on your {HABIT_WORDS.get(h, h)}."})
+    vote = (taste or {}).get(c["id"])
+    if vote == "more":
+        nodes.append({"kind": "taste", "health_claim": False, "source_id": None,
+                      "text": "You asked for more like this."})
+    elif vote == "less":
+        nodes.append({"kind": "taste", "health_claim": False, "source_id": None,
+                      "text": "You asked for less like this. It still came out on top, so we kept it."})
+    elif c["action"] in (kind_less or ()):
+        nodes.append({"kind": "taste", "health_claim": False, "source_id": None,
+                      "text": engine.RULES["p_taste_kind"]["head"]})
     if slot:
         nodes.append({"kind": "calendar", "health_claim": False, "source_id": None, "text": slot["reason"]})
     nodes.append({"kind": "equipment", "health_claim": False, "source_id": None,
@@ -146,7 +172,8 @@ def _card(daypart: str, status: str) -> dict:
 
 
 def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_sleep: bool = False,
-             force_fallback: bool = False) -> dict:
+             force_fallback: bool = False, taste: dict[str, str] | None = None) -> dict:
+    """`taste` = {action: "more" | "less"}, the person's own votes (kept in their browser)."""
     t0 = time.perf_counter()
     timings: dict[str, float] = {}
 
@@ -168,6 +195,7 @@ def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_
     now_dt = datetime.combine(day, datetime.strptime(at, "%H:%M").time())
     live = daypart_of(at)
     bedtime = bedtime_minutes(persona)
+    kind_less = kinds_disliked(taste)
     t = mark("load_aggregate", t0)
 
     person = engine.person_facts(persona, genome, batteries["metrics"])
@@ -190,10 +218,10 @@ def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_
 
         earliest = now_dt if status == "live" else None
         if force_fallback:
-            pool = [c for c in _prefilter(tier, dp, {a["action"]: 1.0 for a in CATALOG}, fills, habits, picked)]
+            pool = [c for c in _prefilter(tier, dp, {a["action"]: 1.0 for a in CATALOG}, fills, habits, picked, taste, kind_less)]
             pool.sort(key=lambda c: -(1 - fills[c["primary_battery"]]))
         else:
-            pool = _prefilter(tier, dp, base["helps"], fills, habits, picked)
+            pool = _prefilter(tier, dp, base["helps"], fills, habits, picked, taste, kind_less)
         if not pool:
             card.update(state="none", text={"preview": "Nothing needed here today."})
             continue
@@ -222,7 +250,7 @@ def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_
             p = None
             deriv = engine.fallback(batteries)["because"]
         else:
-            facts = person + "\n" + engine.candidate_facts(cands, dp, deficits, bedtime, override_sleep)
+            facts = person + "\n" + engine.candidate_facts(cands, dp, deficits, bedtime, override_sleep, taste, kind_less)
             result = engine.evaluate_day(facts)
             t = mark("problog_rank", t)
             by_id = {c["id"]: c for c in cands}
@@ -236,12 +264,13 @@ def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_
                     confidence=confidence_band(p), mode="quick" if force_fallback else "reasoned")
         annotate(deriv, persona)
         card["derivation"] = deriv
-        card["context"] = _context(win, dp, win["slot"], batteries, persona, tier, result, override_sleep)
+        card["context"] = _context(win, dp, win["slot"], batteries, persona, tier, result, override_sleep, taste, kind_less)
         card["sources"] = _sources_for(deriv + card["context"])
         if result:
             card["ranking"] = [{"id": k, "title": by_id[k]["title"], "score": round(v, 3),
                                 "sleep_conflict": round(result["sleep_conflict"].get(k, 0), 2)}
-                               for k, v in sorted(result["good"].items(), key=lambda kv: -kv[1])]
+                               for k, v in sorted(result["good"].items(),  # same tie-break as the pick
+                                                  key=lambda kv: (-kv[1], list(by_id).index(kv[0])))]
         if raw_best is not None and raw_best["id"] != win["id"] and result["sleep_conflict"].get(raw_best["id"], 0) > 0:
             card["sleep_notice"] = {**SLEEP_NOTICE, "source_id": "src_stutz_2019_evening_exercise",
                                     "source": SOURCES["src_stutz_2019_evening_exercise"],

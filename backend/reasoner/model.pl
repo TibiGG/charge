@@ -24,6 +24,8 @@ deficit(none, 0.0).
 now_daypart(none).
 bedtime_min(nobody, 0).
 user_override(none).
+user_taste(none, none).
+kind_taste(none, none).
 
 % ===== 2. GENOMIC REPORT (probabilistic: the probability IS the uncertainty) =====
 % p = modest, calibrated confidence that this marker meaningfully shifts THIS
@@ -107,6 +109,9 @@ W::fits_now(C, p_daypart_fit) :- cand_battery(C, B), now_daypart(D), daypart_fit
 
 % Adapting a habit you already have beats starting a new one (a product choice).
 has_habit_match(C) :- cand_habit(C, H), habit(u1, H).
+% Votes are arguments about one activity (bipolar argumentation, after Toni et al.):
+% "More like this" SUPPORTS it, so it counts like a habit they already enjoy.
+has_habit_match(C) :- user_taste(more, C).
 habit_fit(C) :- has_habit_match(C).
 0.87::habit_fit(C, p_habit_fit) :- cand(C), \+ has_habit_match(C).
 habit_fit(C) :- habit_fit(C, _).
@@ -118,6 +123,15 @@ ends_near_bedtime(C) :- slot_end_min(C, E), bedtime_min(u1, B), Gap is B - E, Ga
     cand_intensity(C, vigorous), ends_near_bedtime(C), \+ user_override(sleep).
 sleep_conflict(C) :- sleep_conflict(C, _).
 
+% "Less like this" ATTACKS it: a soft nudge down, never a block (their taste, not a health claim).
+disliked(C) :- user_taste(less, C).
+0.40::taste_ok(C, p_taste_less) :- disliked(C).
+% Learned over time: 2+ "less" votes on one kind of activity become a weaker attack on that kind.
+kind_disliked(C) :- cand_action(C, A), kind_taste(less, A), \+ disliked(C).
+0.70::taste_ok(C, p_taste_kind) :- kind_disliked(C).
+taste_ok(C) :- cand(C), \+ disliked(C), \+ kind_disliked(C).
+taste_ok(C) :- taste_ok(C, _).
+
 evidence_for(C) :- cand_action(C, A), helps(u1, A).
-good_raw(C) :- need(C, _), evidence_for(C), fits_now(C, _), habit_fit(C).
+good_raw(C) :- need(C, _), evidence_for(C), fits_now(C, _), habit_fit(C), taste_ok(C).
 good(C) :- good_raw(C), \+ sleep_conflict(C).
