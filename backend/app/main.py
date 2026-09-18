@@ -1,9 +1,10 @@
 """Charge API."""
 from __future__ import annotations
 
+import re
 import time
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import date, datetime
 
 from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,9 +12,9 @@ from pydantic import BaseModel
 
 from app import aggregate, scope_guard
 from app.aggregate import SOURCES, TARGETS, compute_batteries, load_persona
-from app.pipeline import run_with_timeout
+from app.day import TIERS, plan_day_with_timeout
 from app.render import GENETIC_FRAME, observation_sentence
-from app.schedule import next_free_slot
+from app.schedule import DAYPARTS, daypart_of, load_calendar, slot_for
 from reasoner import engine
 
 
@@ -39,6 +40,7 @@ def _persona_or_404(pid: str) -> dict:
 
 
 @app.get("/api/health")
+@app.get("/health")
 def health():
     return {"ok": True}
 
@@ -71,11 +73,35 @@ def batteries(pid: str):
 
 
 @app.get("/api/today/{pid}")
-async def today(pid: str):
+def today(pid: str, at: str | None = None, equipment: str | None = None, override_sleep: bool = False):
+    """Three daypart cards. `at` = the viewer's local HH:MM (the demo can pin it)."""
     p = _persona_or_404(pid)
     if not p["watch_connected"]:
         raise HTTPException(409, "no watch connected")
-    return await run_with_timeout(pid)
+    if at is not None and not re.fullmatch(r"([01]\d|2[0-3]):[0-5]\d", at):
+        raise HTTPException(422, "at must be HH:MM")
+    if equipment is not None and equipment not in TIERS:
+        raise HTTPException(422, "equipment must be none, home or gym")
+    return plan_day_with_timeout(pid, at=at, tier=equipment, override_sleep=override_sleep)
+
+
+class RecommendIn(BaseModel):
+    user: str = "margaret"
+    daypart: str | None = None
+    at: str | None = None
+    equipment: str | None = None
+    override_sleep: bool = False
+
+
+@app.post("/recommend")
+@app.post("/api/recommend")
+def recommend(body: RecommendIn):
+    """One daypart's card (post-deploy checklist endpoint)."""
+    at = body.at or {"morning": "08:00", "afternoon": "12:30", "evening": "19:30"}.get(body.daypart or "", None)
+    out = today(body.user, at=at, equipment=body.equipment, override_sleep=body.override_sleep)
+    dp = body.daypart or out["live"]
+    card = next((c for c in out["cards"] if c["daypart"] == dp), None)
+    return {"card": card, "equipment": out["equipment"], "timings_ms": out["timings_ms"]}
 
 
 class AskIn(BaseModel):
@@ -126,14 +152,27 @@ def ask(body: AskIn):
 
 
 class ScheduleIn(BaseModel):
-    minutes: int
+    daypart: str
+    duration_min: int
     persona: str = "margaret"
+    at: str | None = None
 
 
 @app.post("/api/schedule/suggest")
+@app.post("/schedule/suggest")
 def schedule_suggest(body: ScheduleIn):
+    """Free slot in this daypart + the reason we picked it. Never falls through to another daypart."""
+    if body.daypart not in DAYPARTS:
+        raise HTTPException(422, "daypart must be morning, afternoon or evening")
     p = _persona_or_404(body.persona)
-    return {"slot": next_free_slot(body.minutes, p["as_of"])}
+    day = date.fromisoformat(p["as_of"])
+    earliest = None
+    if body.at and daypart_of(body.at) == body.daypart:
+        earliest = datetime.combine(day, datetime.strptime(body.at, "%H:%M").time())
+    slot = slot_for(load_calendar(p.get("calendar", "default.json")), day, body.daypart, body.duration_min, earliest)
+    if slot:
+        return {"slot": slot, "reason": slot["reason"]}
+    return {"slot": None, "reason": f"Your {body.daypart} looks full."}
 
 
 class SampleIn(BaseModel):

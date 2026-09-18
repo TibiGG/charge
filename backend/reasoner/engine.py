@@ -16,7 +16,7 @@ from problog.kbest import KBestFormula
 from problog.program import PrologString
 
 HERE = Path(__file__).resolve().parent
-DATA = HERE.parents[1] / "data"
+DATA = HERE.parent / "data"
 
 MODEL = (HERE / "model.pl").read_text()
 RULES: dict = json.loads((HERE / "rules.json").read_text())

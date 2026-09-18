@@ -8,7 +8,7 @@ import json
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-DATA = Path(__file__).resolve().parents[2] / "data"
+DATA = Path(__file__).resolve().parents[1] / "data"  # backend/data (root/data is a symlink)
 
 SOURCES: dict = json.loads((DATA / "sources.json").read_text())
 TARGETS: dict = json.loads((DATA / "targets.json").read_text())

@@ -22,6 +22,19 @@ demo:
 test:
 	$(PY) -m pytest -q tests
 
-# Cloud Run (needs: gcloud auth + PROJECT set). Usage: make deploy PROJECT=my-gcp-project
-deploy:
-	gcloud run deploy charge --source . --project $(PROJECT) --region europe-west2 --allow-unauthenticated --memory 1Gi
+# ---- Deploy (localhost stays the demo plan; this is for the submission link) ----
+# Backend: make api-image && make api-run   (test the container locally, every time)
+api-image:
+	docker build -t charge-api ./backend
+
+api-run:
+	docker run --rm -p 8080:8080 -e PORT=8080 charge-api
+
+# Needs: gcloud auth login (done by you) + PROJECT=<id>
+deploy-api:
+	gcloud run deploy charge-api --source ./backend --project $(PROJECT) --region europe-west2 \
+	  --allow-unauthenticated --min-instances=1 --cpu=2 --memory=2Gi --cpu-boost \
+	  --timeout=30s --concurrency=10
+
+deploy-web:
+	cd frontend && npx -y vercel@latest --prod --yes
