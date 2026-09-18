@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { COPY } from './copy';
 	let { clientMs, timings }: { clientMs?: number; timings?: Record<string, number> } = $props();
-	const secs = $derived(clientMs != null ? (clientMs / 1000).toFixed(1) : null);
+	const secs = $derived(clientMs == null ? null : clientMs < 1000 ? (clientMs / 1000).toFixed(2) : (clientMs / 1000).toFixed(1));
 	const detail = $derived(
 		timings ? Object.entries(timings).map(([k, v]) => `${k}: ${v}ms`).join('\n') : ''
 	);

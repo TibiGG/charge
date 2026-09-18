@@ -69,12 +69,16 @@ def fact_sentence(fact: dict, persona: dict) -> str:
     return ""
 
 
-def annotate(nodes: list, persona: dict) -> None:
-    """Add plain-language `said` lines to every fact in the derivation tree, in place."""
+def annotate(nodes: list, persona: dict, seen: set | None = None) -> None:
+    """Add plain-language `said` lines to every fact in the derivation tree, in place.
+    A fact already said higher up the tree is not repeated."""
+    seen = set() if seen is None else seen
     for n in nodes:
         for f in n.get("facts", []):
-            f["said"] = fact_sentence(f, persona)
-        annotate(n.get("children", []), persona)
+            s = fact_sentence(f, persona)
+            f["said"] = None if s in seen else s
+            seen.add(s)
+        annotate(n.get("children", []), persona, seen)
 
 
 def _has_genetic(nodes: list) -> bool:

@@ -13,6 +13,7 @@
 	let added = $state(false);
 	let skipped = $state(false);
 	let showSeated = $state(false);
+	const whyOpen = typeof location !== 'undefined' && location.hash === '#why';
 
 	onMount(async () => {
 		try { data = await api.today(getPersona()); } catch (e: any) { err = e.status ?? String(e); }
@@ -84,7 +85,7 @@
 		{/if}
 	</article>
 
-	<details class="card whybox">
+	<details class="card whybox" id="why" open={whyOpen}>
 		<summary><h2>{COPY.today.why}</h2></summary>
 		<h3>{COPY.today.whyTitle}</h3>
 		<Why nodes={rec.derivation} sources={rec.sources} />
