@@ -180,5 +180,6 @@ if _WEB.exists():
 
     @app.get("/{path:path}", include_in_schema=False)
     def spa(path: str):
-        f = _WEB / path
-        return FileResponse(f if path and f.is_file() else _WEB / "index.html")
+        f = (_WEB / path).resolve()
+        ok = path and f.is_file() and f.is_relative_to(_WEB.resolve())  # no ../ escapes
+        return FileResponse(f if ok else _WEB / "index.html")
