@@ -121,7 +121,7 @@
 						<span class="tag choice-tag">{COPY.day.ourChoice}</span>
 					{/if}
 					{#if n.design_note}
-						<details class="meaning"><summary>{COPY.today.productChoice}</summary><p>{n.design_note}</p></details>
+						<details class="meaning"><summary>{COPY.day.whyOurCall}</summary><p>{n.design_note}</p></details>
 					{/if}
 				</li>
 			{/each}
@@ -163,7 +163,7 @@
 		<div class="inspect-body">
 			<p class="muted">{card.status === 'past' ? COPY.day.lookEarlier : COPY.day.lookLater}</p>
 			{@render details()}
-			{#if card.state === 'ok'}{@render why()}{/if}
+			{#if card.derivation}{@render why()}{/if}
 		</div>
 	</details>
 {:else if !live}
@@ -200,5 +200,5 @@
 		{/if}
 	</article>
 
-	{#if card.state === 'ok'}{@render why()}{/if}
+	{#if card.derivation}{@render why()}{/if}
 {/if}

@@ -242,6 +242,25 @@ def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_
                                         "for whenever you get a gap.",
                               "preview": f"{short['title']}, {short['duration_min']} minutes."})
             card["confidence"] = confidence_band(card["p"])
+            # Still explain it: the same proof as any other card, plus why the short one.
+            if force_fallback:
+                result, deriv = None, engine.fallback(batteries)["because"]
+            else:
+                facts = person + "\n" + engine.candidate_facts([short], dp, deficits, None, override_sleep,
+                                                               taste, kind_less)
+                result = engine.evaluate_day(facts)
+                t = mark("problog_rank", t)
+                deriv = engine.derivation(short["action"], result, batteries)["because"]
+            annotate(deriv, persona)
+            card["derivation"] = deriv
+            card["context"] = [{"kind": "calendar", "health_claim": False, "source_id": None,
+                                "text": f"Your {dp} looks full, so we picked the shortest idea that still helps."},
+                               *_context(short, dp, None, batteries, persona, tier, result, override_sleep,
+                                         taste, kind_less)]
+            card["sources"] = _sources_for(deriv + card["context"])
+            genetic = any(n.get("genetic") for n in _flatten(deriv))
+            card["text"].update(confidence=card["confidence"]["sentence"],
+                                genetic_frame=GENETIC_FRAME if genetic else None)
             continue
 
         cands = with_slot[:TOP_K]

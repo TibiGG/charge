@@ -138,6 +138,7 @@ export const COPY = {
 		noise: 'Noise',
 		canSit: 'You can sit for this.',
 		tryAgain: 'Try again',
+		whyOurCall: 'Why is this our call?',
 		look: 'Take a look',
 		lookEarlier: 'This was the idea for earlier. You can still read it.',
 		lookLater: 'This is the plan for later. Its button shows up then.',
