@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api, getPersona, getEquipment, setEquipment } from '$lib/api';
+	import { api, getPersona, getEquipment, setEquipment, getProfile, setProfile, KIT_PRESETS, tierOf } from '$lib/api';
 	import { COPY, type BatteryId } from '$lib/copy';
 	import Vial from '$lib/Vial.svelte';
 	import Speak from '$lib/Speak.svelte';
@@ -23,6 +23,7 @@
 	function pickEquipment(v: string) {
 		chosen = v;
 		setEquipment(persona, v);
+		setProfile(persona, { ...getProfile(persona), kit: KIT_PRESETS[v] });  // a starting point; fine-tune in User
 	}
 
 	async function load() {
@@ -30,7 +31,8 @@
 	}
 	onMount(() => {
 		persona = getPersona();
-		chosen = getEquipment(persona);
+		const k = getProfile(persona).kit;
+		chosen = k ? tierOf(k) : getEquipment(persona);
 		load();
 		// Live watch samples: poll gently so a tap on the watch fills the vial on screen.
 		const t = setInterval(load, 3000);
@@ -93,6 +95,7 @@
 	<p class="hint">{COPY.tapVial}</p>
 
 	<EquipmentPicker value={equipment} onchange={pickEquipment} />
+	<p class="hint"><a href="/user">{COPY.user.fineTune}</a></p>
 
 	<a class="primary" href="/today">{COPY.primaryToday}</a>
 {:else}

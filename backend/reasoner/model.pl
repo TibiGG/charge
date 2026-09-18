@@ -26,6 +26,10 @@ bedtime_min(nobody, 0).
 user_override(none).
 user_taste(none, none).
 kind_taste(none, none).
+cand_needs(none, none).
+has_item(nobody, none, none).
+gym_window(nobody, 0, 0).
+slot_start_min(none, 0).
 
 % ===== 2. GENOMIC REPORT (probabilistic: the probability IS the uncertainty) =====
 % p = modest, calibrated confidence that this marker meaningfully shifts THIS
@@ -132,6 +136,17 @@ kind_disliked(C) :- cand_action(C, A), kind_taste(less, A), \+ disliked(C).
 taste_ok(C) :- cand(C), \+ disliked(C), \+ kind_disliked(C).
 taste_ok(C) :- taste_ok(C, _).
 
+% ===== 6. KIT: what the person has, where, and when they can get to it =====
+% has_item(u1, home, mat). has_item(u1, gym, pool). gym_window(u1, From, To) in minutes:
+% the times THIS person can get to their gym (before work, a lunch break near the office...).
+% A gym item only counts if the whole slot sits inside one of those windows.
+gym_open_for(C) :- slot_start_min(C, S), slot_end_min(C, E), gym_window(u1, F, T), S >= F, E =< T.
+kit_at(C, I, home) :- cand_needs(C, I), has_item(u1, home, I).
+kit_at(C, I, gym) :- cand_needs(C, I), has_item(u1, gym, I), gym_open_for(C).
+kit_found(C, I) :- kit_at(C, I, _).
+missing_kit(C) :- cand_needs(C, I), \+ kit_found(C, I).
+kit_ok(C) :- cand(C), \+ missing_kit(C).
+
 evidence_for(C) :- cand_action(C, A), helps(u1, A).
-good_raw(C) :- need(C, _), evidence_for(C), fits_now(C, _), habit_fit(C), taste_ok(C).
+good_raw(C) :- need(C, _), evidence_for(C), fits_now(C, _), habit_fit(C), taste_ok(C), kit_ok(C).
 good(C) :- good_raw(C), \+ sleep_conflict(C).

@@ -146,7 +146,44 @@ export const COPY = {
 		lessLike: 'Less like this',
 		votedMore: "Thanks. We'll show you more like this.",
 		votedLess: "Thanks. We'll show you less like this.",
-		voteCleared: "Okay. We've undone that."
+		voteCleared: "Okay. We've undone that.",
+		logicTitle: 'Check the logic',
+		logicIntro: 'This is the exact logic program that made this pick. You can check each step.',
+		logicQuery: 'What we asked',
+		logicScore: 'Score',
+		logicProofs: 'Each way the rules reach this pick',
+		logicRules: 'The rules it used',
+		logicFacts: 'What we know, as facts',
+		seatedWhy: 'You picked the seated one. It works the same batteries, so the reasons below still hold.'
+	},
+
+	user: {
+		title: 'About you',
+		intro: 'This is what we use to pick your ideas. Change anything. It stays on this device.',
+		fineTune: 'Tell us exactly what kit you have',
+		you: 'You',
+		name: 'Name',
+		age: 'Age',
+		habits: 'Things you already do',
+		homeKit: 'Kit at home',
+		homeHint: 'Tick what you have. If you have none of it, leave it all blank. We will only suggest things you can do.',
+		noKit: 'I have no kit at all',
+		gym: 'A gym',
+		gymToggle: 'I can use a gym',
+		gymKit: 'What the gym has',
+		when: 'When can you get there?',
+		whenHint: 'Add each time you could go. For example, before work, or a lunch break if the gym is near work.',
+		from: 'From',
+		to: 'To',
+		label: 'Note',
+		add: 'Add a time',
+		remove: 'Remove',
+		quick: 'Quick add',
+		save: 'Save',
+		saved: 'Saved. Your day now uses this.',
+		reset: 'Go back to what we knew',
+		noWindows: 'Add at least one time, or we will not suggest the gym.',
+		seeDay: 'See my day'
 	},
 
 	offline: "We can't reach Charge right now. Please try again in a moment.",
@@ -162,7 +199,7 @@ export const COPY = {
 	},
 	genetic: "This nudges your starting point. It doesn't tell you what will happen.",
 	latency: 'Time to answer',
-	nav: { home: 'Batteries', today: 'Today', ask: 'Ask' }
+	nav: { home: 'Batteries', today: 'Today', ask: 'Ask', user: 'User' }
 } as const;
 
 export type BatteryId = keyof typeof COPY.batteries;

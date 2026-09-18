@@ -1,6 +1,7 @@
 """Charge API."""
 from __future__ import annotations
 
+import json
 import re
 import time
 from contextlib import asynccontextmanager
@@ -12,7 +13,7 @@ from pydantic import BaseModel
 
 from app import aggregate, scope_guard
 from app.aggregate import SOURCES, TARGETS, compute_batteries, load_persona
-from app.day import CATALOG, TIERS, plan_day_with_timeout
+from app.day import CATALOG, GYM_DEFAULT, KIT_WORDS, TIERS, plan_day_with_timeout, resolve_kit
 from app.render import GENETIC_FRAME, observation_sentence
 from app.schedule import DAYPARTS, daypart_of, load_calendar, slot_for
 from reasoner import engine
@@ -72,9 +73,41 @@ def batteries(pid: str):
             **b, "timings_ms": {"total": round((time.perf_counter() - t) * 1000, 1)}}
 
 
+HHMM = re.compile(r"([01]\d|2[0-3]):[0-5]\d")
+HABITS = {"yoga", "spin", "weights", "walking"}
+
+
+def _parse_kit(raw: str | None) -> dict | None:
+    """The User tab's kit profile: {"home": [items], "gym": null | {"items": [..], "windows": [{from,to,label}]}}."""
+    if not raw:
+        return None
+    try:
+        k = json.loads(raw)
+        home = [i for i in k.get("home", []) if i in KIT_WORDS]
+        gym = k.get("gym")
+        if gym:
+            windows = [{"from": w["from"], "to": w["to"], "label": str(w.get("label", ""))[:60]}
+                       for w in gym.get("windows", []) if HHMM.fullmatch(w.get("from", "")) and HHMM.fullmatch(w.get("to", ""))
+                       and w["from"] < w["to"]]
+            gym = {"items": [i for i in gym.get("items", []) if i in KIT_WORDS], "windows": windows}
+        return {"home": home, "gym": gym}
+    except (ValueError, AttributeError, TypeError, KeyError):
+        raise HTTPException(422, "kit must be JSON like {\"home\": [\"mat\"], \"gym\": null}")
+
+
+@app.get("/api/profile/{pid}")
+def profile(pid: str):
+    """Everything the User tab can change, with what we'd use if they change nothing."""
+    p = _persona_or_404(pid)
+    return {"id": p["id"], "name": p["name"], "age": p["age"], "habits": p.get("habits", []),
+            "watch_connected": p["watch_connected"], "kit": resolve_kit(p, None, None),
+            "items": KIT_WORDS, "habit_options": sorted(HABITS), "gym_default": GYM_DEFAULT}
+
+
 @app.get("/api/today/{pid}")
 def today(pid: str, at: str | None = None, equipment: str | None = None, override_sleep: bool = False,
-          more: str = "", less: str = ""):
+          more: str = "", less: str = "", kit: str | None = None, age: int | None = None,
+          habits: str | None = None):
     """Three daypart cards. `at` = the viewer's local HH:MM (the demo can pin it).
     `more` / `less` = comma-separated activity ids the person voted on (stored in their browser)."""
     p = _persona_or_404(pid)
@@ -87,7 +120,15 @@ def today(pid: str, at: str | None = None, equipment: str | None = None, overrid
     ids = {a["id"] for a in CATALOG}
     taste = {k: "more" for k in more.split(",") if k in ids}
     taste |= {k: "less" for k in less.split(",") if k in ids}
-    return plan_day_with_timeout(pid, at=at, tier=equipment, override_sleep=override_sleep, taste=taste)
+    over = {}
+    if age is not None:
+        if not 18 <= age <= 110:
+            raise HTTPException(422, "age must be 18-110")
+        over["age"] = age
+    if habits is not None:
+        over["habits"] = [h for h in habits.split(",") if h in HABITS]
+    return plan_day_with_timeout(pid, at=at, tier=equipment, override_sleep=override_sleep, taste=taste,
+                                 kit=_parse_kit(kit), persona_overrides=over)
 
 
 class RecommendIn(BaseModel):

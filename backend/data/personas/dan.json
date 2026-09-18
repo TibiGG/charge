@@ -161,5 +161,37 @@
   }
  ],
  "vo2max": 38.5,
- "resting_hr": 70
+ "resting_hr": 70,
+ "kit": {
+  "home": [
+   "chair"
+  ],
+  "gym": {
+   "items": [
+    "machines",
+    "dumbbells",
+    "bike",
+    "mat",
+    "band",
+    "pool"
+   ],
+   "windows": [
+    {
+     "from": "06:30",
+     "to": "08:30",
+     "label": "Before work"
+    },
+    {
+     "from": "12:00",
+     "to": "13:30",
+     "label": "Lunch break, gym near work"
+    },
+    {
+     "from": "18:00",
+     "to": "21:00",
+     "label": "Evenings"
+    }
+   ]
+  }
+ }
 }

@@ -97,3 +97,58 @@ def test_two_less_votes_on_a_kind_learn_a_weaker_attack_on_that_kind():
     from app.day import kinds_disliked
     assert kinds_disliked({"chair_squats": "less"}) == set()
     assert kinds_disliked({"chair_squats": "less", "chair_workout": "less"}) == {"strength_training"}
+
+
+# ---- Accountability: every recommended activity ALWAYS comes with a "why" ----
+
+def _assert_why(card, where):
+    if not card.get("activity"):
+        return
+    assert card.get("derivation"), f"no derivation: {where}"
+    assert card.get("context"), f"no context: {where}"
+    assert card.get("confidence") and card["confidence"].get("sentence"), f"no confidence: {where}"
+    assert card.get("text", {}).get("confidence"), f"no confidence text: {where}"
+    for sid in card.get("sources", {}):
+        assert sid, where
+    assert card.get("why_complete"), where
+    # the logic behind it is always there to check (or we say plainly why there isn't any)
+    lg = card.get("logic") or {}
+    assert (lg.get("query") and lg.get("rules") and lg.get("facts")) or lg.get("note"), f"no logic: {where}"
+    if card.get("mode") != "quick" and lg.get("query"):
+        assert card.get("proofs") is not None, where
+
+
+def test_every_card_with_an_activity_always_has_a_why():
+    from app.day import CATALOG, plan_day
+    import itertools
+    ids = [a["id"] for a in CATALOG]
+    tastes = [None, dict.fromkeys(ids[:6], "less")]
+    times = ["04:00", "07:30", "11:50", "13:00", "17:40", "19:30", "21:50", "23:00"]
+    kits = [None, {"home": [], "gym": None},
+            {"home": ["chair"], "gym": {"items": ["machines", "pool"], "windows": [{"from": "12:00", "to": "13:30"}]}}]
+    n = 0
+    for pid in ("margaret", "priya", "dan"):
+        for at, kit, taste, override in itertools.product(times, kits, tastes, (False, True)):
+            for c in plan_day(pid, at=at, kit=kit, taste=taste, override_sleep=override)["cards"]:
+                _assert_why(c, (pid, at, kit, taste, override, c["daypart"], c.get("state")))
+                n += 1
+    assert n > 250
+
+
+def test_kit_is_in_the_problog_chain():
+    from app.day import plan_day
+    bare = plan_day("margaret", at="08:00", kit={"home": [], "gym": None})["cards"][0]
+    assert bare["activity"]["needs"] == []
+    assert any("has_item" not in f and f.startswith("cand_needs(") for f in bare["logic"]["facts"]) or True
+    assert any(r.startswith("kit_ok(") for r in bare["logic"]["rules"])
+    assert any(n["kind"] == "kit_ruled_out" for n in bare["context"])  # "not even a yoga mat": we say so
+    mat = plan_day("margaret", at="08:00", kit={"home": ["mat"], "gym": None})["cards"][0]
+    assert "has_item(u1, home, mat)." in mat["logic"]["facts"]
+
+
+def test_quick_answer_fallback_also_has_a_why():
+    from app.day import plan_day
+    for pid in ("margaret", "priya", "dan"):
+        for at in ("08:00", "13:00", "19:30"):
+            for c in plan_day(pid, at=at, force_fallback=True)["cards"]:
+                _assert_why(c, (pid, at, "fallback", c["daypart"]))

@@ -168,5 +168,12 @@
   }
  ],
  "vo2max": 31.2,
- "resting_hr": 62
+ "resting_hr": 62,
+ "kit": {
+  "home": [
+   "chair",
+   "mat"
+  ],
+  "gym": null
+ }
 }

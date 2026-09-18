@@ -54,6 +54,8 @@
 	</div>
 	<p class="muted">{shown.equipment_text} {COPY.day.noise}: {shown.noise_text}.{#if shown.seated_option} {COPY.day.canSit}{/if}</p>
 
+	{@render why()}
+
 	{#if card.sleep_notice && !overridden}
 		<aside class="mixed" aria-label={card.sleep_notice.title}>
 			<h2>{card.sleep_notice.title} <span class="tag mixed-tag">{COPY.day.mixed}</span></h2>
@@ -106,17 +108,18 @@
 {/snippet}
 
 {#snippet why()}
-	<details class="card whybox" id={live ? 'why' : undefined} open={live && whyOpen}>
+	<details class="whybox inner" id={live ? 'why' : undefined} open={live && whyOpen}>
 		<summary><h2>{COPY.today.why}</h2></summary>
+		{#if showSeated && card.seated_alternative}<p class="notice">{COPY.day.seatedWhy}</p>{/if}
 
 		<h3>{COPY.day.whyContext}</h3>
 		<ul class="context">
-			{#each card.context as n}
+			{#each card.context ?? [] as n}
 				<li class="ctx ctx-{n.kind}">
 					<p>{n.text}</p>
 					{#if n.certainty === 'mixed'}<span class="tag mixed-tag">{COPY.day.mixed}</span>{/if}
 					{#if n.health_claim && n.source_id}
-						<SourceChip source={card.sources[n.source_id]} id={n.source_id} />
+						<SourceChip source={card.sources?.[n.source_id]} id={n.source_id} />
 					{:else if !n.health_claim}
 						<span class="tag choice-tag">{COPY.day.ourChoice}</span>
 					{/if}
@@ -128,20 +131,31 @@
 		</ul>
 
 		<h3>{COPY.today.whyTitle}</h3>
-		<Why nodes={card.derivation} sources={card.sources} />
-		<p class="howsure"><strong>{COPY.today.howSure}</strong> {card.text.confidence}{#if card.p != null} <em>({card.p.toFixed(2)})</em>{/if}</p>
+		<Why nodes={card.derivation ?? []} sources={card.sources ?? {}} />
+		<p class="howsure"><strong>{COPY.today.howSure}</strong> {card.text?.confidence ?? card.confidence?.sentence ?? ''}{#if card.p != null} <em>({card.p.toFixed(2)})</em>{/if}</p>
 
-		{#if card.proofs?.length}
-			<details class="meaning proofs">
-				<summary>{COPY.today.proofTitle}</summary>
-				<p>{COPY.today.proofIntro}</p>
-				<ol class="mono">
-					{#each card.proofs as pr}
-						<li><code>{pr.uses.join('  ∧  ')}{#if pr.excludes.length}  ∧ ¬({pr.excludes.join(', ')}){/if}</code> <span class="prob">{pr.p}</span></li>
-					{/each}
-				</ol>
-			</details>
-		{/if}
+		<details class="meaning proofs logic">
+			<summary>{COPY.day.logicTitle}</summary>
+			{#if card.logic?.note}
+				<p>{card.logic.note}</p>
+			{:else if card.logic}
+				<p>{COPY.day.logicIntro}</p>
+				<h4>{COPY.day.logicQuery}</h4>
+				<pre class="mono">?- {card.logic.query}.   % {COPY.day.logicScore}: {card.logic.p_good}</pre>
+				{#if card.proofs?.length}
+					<h4>{COPY.day.logicProofs}</h4>
+					<ol class="mono">
+						{#each card.proofs as pr}
+							<li><code>{pr.uses.join('  ∧  ')}{#if pr.excludes.length}  ∧ ¬({pr.excludes.join(', ')}){/if}</code> <span class="prob">{pr.p}</span></li>
+						{/each}
+					</ol>
+				{/if}
+				<h4>{COPY.day.logicRules}</h4>
+				<pre class="mono">{card.logic.rules.join('\n')}</pre>
+				<h4>{COPY.day.logicFacts}</h4>
+				<pre class="mono">{card.logic.facts.join('\n')}</pre>
+			{/if}
+		</details>
 
 		{#if card.ranking?.length > 1}
 			<h3>{COPY.day.ranking}</h3>
@@ -163,7 +177,6 @@
 		<div class="inspect-body">
 			<p class="muted">{card.status === 'past' ? COPY.day.lookEarlier : COPY.day.lookLater}</p>
 			{@render details()}
-			{#if card.derivation}{@render why()}{/if}
 		</div>
 	</details>
 {:else if !live}
@@ -200,5 +213,4 @@
 		{/if}
 	</article>
 
-	{#if card.derivation}{@render why()}{/if}
 {/if}

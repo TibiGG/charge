@@ -211,3 +211,22 @@ details.daypart.inspect[open] .look { display: none; }
 .votes { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
 .vote { min-height: 48px; padding: 8px 16px; border-radius: 999px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 700; }
 .vote[aria-pressed='true'] { border-color: var(--brand); background: var(--glass); }
+
+/* "Why this?" lives inside every card; "Check the logic" inside that. */
+.whybox.inner { margin: 12px 0; padding: 4px 14px 10px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.logic h4 { margin: 12px 0 4px; font-size: 1rem; }
+.logic pre { white-space: pre-wrap; word-break: break-word; font-size: .82rem; line-height: 1.45; background: var(--glass); padding: 10px; border-radius: 10px; max-height: 320px; overflow: auto; }
+
+/* ---- User tab ---- */
+.user-form fieldset { border: 0; padding: 0; margin: 12px 0; }
+.user-form legend, .user-form h3 { font-weight: 800; margin: 8px 0; }
+.user-form h2 { display: flex; gap: 8px; align-items: center; }
+.check { display: flex; gap: 12px; align-items: center; min-height: 48px; font-size: 1.1rem; }
+.check input { width: 24px; height: 24px; }
+.field { display: flex; flex-direction: column; gap: 6px; font-weight: 700; margin: 10px 0; }
+.field input, .window input { font: inherit; min-height: 48px; padding: 6px 10px; border: 2px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); }
+.windows { list-style: none; padding: 0; }
+.window { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.window label { display: flex; flex-direction: column; gap: 4px; font-weight: 700; }
+.window .grow { flex: 1 1 180px; }
+.window .grow input { width: 100%; }

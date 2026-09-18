@@ -99,6 +99,8 @@ def explain(facts: str, action: str, query: str | None = None) -> list[dict]:
         if not line.strip() or ":-" not in line:
             continue
         body, _, prob = line.partition("% P=")
+        if not prob.strip():  # a line without a probability is not a proof
+            continue
         body = body.split(":-", 1)[1].strip().rstrip(".").strip()
         body = _CHOICE.sub(_choice_label, body)
         literals = [l.strip() for l in re.split(r",\s*(?![^()]*\))", body) if l.strip()]
@@ -222,8 +224,9 @@ def all_clause_ids() -> list[tuple[str, str, float | str]]:
 
 def candidate_facts(cands: list[dict], daypart: str, deficits: dict[str, float],
                     bedtime_min: int | None, override_sleep: bool, taste: dict[str, str] | None = None,
-                    kind_less: set[str] | None = None) -> str:
+                    kind_less: set[str] | None = None, kit: dict | None = None) -> str:
     lines = [f"now_daypart({daypart})."]
+    lines += kit_facts(kit)
     lines += [f"user_taste({v}, {_atom(a)})." for a, v in sorted((taste or {}).items()) if v in ("more", "less")]
     lines += [f"kind_taste(less, {k})." for k in sorted(kind_less or ())]
     lines += [f"deficit({b}, {max(0.0, min(1.0, w)):.3f})." for b, w in deficits.items()]
@@ -236,17 +239,39 @@ def candidate_facts(cands: list[dict], daypart: str, deficits: dict[str, float],
         lines += [f"cand({cid}).", f"cand_action({cid}, {c['action']}).",
                   f"cand_battery({cid}, {c['primary_battery']}).", f"cand_intensity({cid}, {c['intensity']})."]
         lines += [f"cand_habit({cid}, {_atom(h)})." for h in c.get("habits", [])]
+        lines += [f"cand_needs({cid}, {_atom(i)})." for i in c.get("needs", [])]
         if c.get("slot_end_min") is not None:
             lines.append(f"slot_end_min({cid}, {c['slot_end_min']}).")
+        if c.get("slot_start_min") is not None:
+            lines.append(f"slot_start_min({cid}, {c['slot_start_min']}).")
     return "\n".join(lines)
+
+
+def _mins(hhmm: str) -> int:
+    h, m = hhmm.split(":")
+    return int(h) * 60 + int(m)
+
+
+def kit_facts(kit: dict | None) -> list[str]:
+    """has_item/3 + gym_window/3 from the person's kit profile (the User tab)."""
+    if not kit:
+        return []
+    lines = [f"has_item(u1, home, {_atom(i)})." for i in sorted(kit.get("home", []))]
+    gym = kit.get("gym")
+    if gym:
+        lines += [f"has_item(u1, gym, {_atom(i)})." for i in sorted(gym.get("items", []))]
+        lines += [f"gym_window(u1, {_mins(w['from'])}, {_mins(w['to'])})." for w in gym.get("windows", [])]
+    return lines
 
 
 def evaluate_day(facts: str) -> dict:
     q = "\n".join([
         "query(good(_)).", "query(good_raw(_)).", "query(sleep_conflict(_, r_sleep_evening)).",
-        "query(helps(u1,_)).", "query(recommend(u1,_,_)).", "query(marker_shifts(u1,_,_))."])
+        "query(helps(u1,_)).", "query(recommend(u1,_,_)).", "query(marker_shifts(u1,_,_)).",
+        "query(kit_at(_,_,_)).", "query(missing_kit(_))."])
     res = get_evaluatable().create_from(PrologString(_program(facts, q))).evaluate()
-    out = {"good": {}, "good_raw": {}, "sleep_conflict": {}, "helps": {}, "rules": {}, "edges": {}}
+    out = {"good": {}, "good_raw": {}, "sleep_conflict": {}, "helps": {}, "rules": {}, "edges": {},
+           "kit_at": {}, "missing_kit": set()}
     for term, p in res.items():
         args = [str(a) for a in term.args]
         if term.functor in ("good", "good_raw"):
@@ -260,7 +285,40 @@ def evaluate_day(facts: str) -> dict:
             out["rules"][args[2]] = {"action": args[1], "p": p}
         elif term.functor == "marker_shifts":
             out["edges"][args[2]] = {"trait": args[1], "p": p}
+        elif term.functor == "kit_at" and p > 0 and args[0] != "none":
+            out["kit_at"].setdefault(args[0], {})[args[1]] = args[2]
+        elif term.functor == "missing_kit" and p > 0 and args[0] != "none":
+            out["missing_kit"].add(args[0])
     return out
+
+
+# Predicates whose clauses decide the pick; shown in "Check the logic" on every card.
+LOGIC_PREDICATES = ("good", "good_raw", "need", "fits_now", "habit_fit", "has_habit_match", "taste_ok",
+                    "disliked", "kind_disliked", "sleep_conflict", "ends_near_bedtime", "evidence_for",
+                    "kit_ok", "missing_kit", "kit_found", "kit_at", "gym_open_for", "helps")
+
+
+def _clauses() -> list[str]:
+    """model.pl as one string per clause, comments stripped."""
+    text = "\n".join(l.split("%", 1)[0].rstrip() for l in MODEL.splitlines())
+    return [c.strip() + "." for c in re.split(r"\.\s*\n", text) if c.strip()]
+
+
+def logic_for(facts: str, query: str, rule_ids: set[str], cand_id: str) -> dict:
+    """What a curious person needs to check the pick by hand: the query, the rules it
+    rests on (the ranking rules + every sourced rule the proofs used) and the facts."""
+    rules = []
+    for c in _clauses():
+        head = re.sub(r"^[\d.]+::|^W::", "", c).split(":-")[0]
+        name = head.split("(")[0].strip()
+        if (name in LOGIC_PREDICATES and ":-" in c) or any(re.search(rf"\b{re.escape(r)}\)", head) for r in rule_ids):
+            rules.append(c)
+    cid = _atom(cand_id)
+    keep = ("now_daypart", "deficit", "bedtime_min", "user_override", "has_item", "gym_window", "habit(",
+            "user_taste", "kind_taste", "age(", "observed", "prs_band", "carries", "menopause_status", "target(")
+    fl = [l for l in facts.splitlines() if l.strip() and (f"({cid}," in l or f"({cid})" in l or f", {cid})" in l
+                                                          or l.strip().startswith(keep))]
+    return {"query": query, "rules": rules, "facts": fl}
 
 
 def warm() -> None:

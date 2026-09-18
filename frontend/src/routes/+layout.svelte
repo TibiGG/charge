@@ -28,6 +28,7 @@
 		<a href="/" aria-current={page.url.pathname === '/' ? 'page' : undefined}>{COPY.nav.home}</a>
 		<a href="/today" aria-current={page.url.pathname === '/today' ? 'page' : undefined}>{COPY.nav.today}</a>
 		<a href="/ask" aria-current={page.url.pathname === '/ask' ? 'page' : undefined}>{COPY.nav.ask}</a>
+		<a href="/user" aria-current={page.url.pathname === '/user' ? 'page' : undefined}>{COPY.nav.user}</a>
 	</nav>
 	<label class="persona">
 		<span class="sr-only">Demo person</span>

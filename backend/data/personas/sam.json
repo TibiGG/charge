@@ -13,5 +13,11 @@
  "workouts": [],
  "daily": [],
  "vo2max": null,
- "resting_hr": null
+ "resting_hr": null,
+ "kit": {
+  "home": [
+   "chair"
+  ],
+  "gym": null
+ }
 }

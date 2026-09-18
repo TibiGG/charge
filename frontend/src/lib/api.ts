@@ -16,7 +16,8 @@ async function timed<T>(path: string, init?: RequestInit): Promise<Timed<T>> {
 export const api = {
 	personas: () => timed<any>('/api/personas'),
 	batteries: (p: string) => timed<any>(`/api/batteries/${p}`),
-	today: (p: string, q: { at?: string; equipment?: string; override_sleep?: boolean; taste?: Taste } = {}) => {
+	profile: (p: string) => timed<any>(`/api/profile/${p}`),
+	today: (p: string, q: { at?: string; equipment?: string; override_sleep?: boolean; taste?: Taste; profile?: Profile } = {}) => {
 		const qs = new URLSearchParams();
 		if (q.at) qs.set('at', q.at);
 		if (q.equipment) qs.set('equipment', q.equipment);
@@ -24,6 +25,9 @@ export const api = {
 		const kinds = (v: Vote) => Object.keys(q.taste ?? {}).filter((k) => q.taste![k] === v).join(',');
 		if (kinds('more')) qs.set('more', kinds('more'));
 		if (kinds('less')) qs.set('less', kinds('less'));
+		if (q.profile?.kit) qs.set('kit', JSON.stringify(q.profile.kit));
+		if (q.profile?.age) qs.set('age', String(q.profile.age));
+		if (q.profile?.habits) qs.set('habits', q.profile.habits.join(','));
 		return timed<any>(`/api/today/${p}?${qs}`);
 	},
 	sources: () => timed<any>('/api/sources'),
@@ -83,4 +87,27 @@ export function setVote(p: string, kind: string, v: Vote | null): Taste {
 	if (v) t[kind] = v; else delete t[kind];
 	try { localStorage.setItem(`taste:${p}`, JSON.stringify(t)); } catch {}
 	return t;
+}
+
+/** The User tab: what they told us. Kept in this browser; sent with every plan. */
+export type GymWindow = { from: string; to: string; label?: string };
+export type Kit = { home: string[]; gym: null | { items: string[]; windows: GymWindow[] } };
+export type Profile = { age?: number; habits?: string[]; kit?: Kit };
+
+export const KIT_PRESETS: Record<string, Kit> = {
+	none: { home: ['chair'], gym: null },
+	home: { home: ['chair', 'mat', 'dumbbells', 'band'], gym: null },
+	gym: { home: ['chair'], gym: { items: ['machines', 'dumbbells', 'bike', 'mat', 'band', 'pool'], windows: [{ from: '06:00', to: '22:00', label: 'Any time' }] } }
+};
+
+export function tierOf(k: Kit): string {
+	return k.gym ? 'gym' : k.home.some((i) => i !== 'chair') ? 'home' : 'none';
+}
+
+export function getProfile(p: string): Profile {
+	try { return JSON.parse(localStorage.getItem(`profile:${p}`) ?? '{}'); } catch { return {}; }
+}
+
+export function setProfile(p: string, v: Profile) {
+	try { localStorage.setItem(`profile:${p}`, JSON.stringify(v)); } catch {}
 }

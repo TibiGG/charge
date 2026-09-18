@@ -31,7 +31,8 @@
     "Stop if anything hurts."
    ],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": []
   },
   {
    "id": "yoga_heel_drops",
@@ -69,7 +70,10 @@
     "Add a few small hops if that feels fine."
    ],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": [
+    "mat"
+   ]
   },
   {
    "id": "ros_dance",
@@ -104,7 +108,8 @@
     "Do it a few times through."
    ],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": []
   },
   {
    "id": "chair_squats",
@@ -139,7 +144,10 @@
     "Then push away from a wall with your arms."
    ],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": [
+    "chair"
+   ]
   },
   {
    "id": "ros_strength_balance",
@@ -172,7 +180,10 @@
    },
    "steps": [],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": [
+    "chair"
+   ]
   },
   {
    "id": "chair_workout",
@@ -205,7 +216,10 @@
    },
    "steps": [],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": [
+    "chair"
+   ]
   },
   {
    "id": "nia_strength",
@@ -236,7 +250,10 @@
    },
    "steps": [],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": [
+    "dumbbells"
+   ]
   },
   {
    "id": "dumbbells",
@@ -267,7 +284,10 @@
    },
    "steps": [],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": [
+    "dumbbells"
+   ]
   },
   {
    "id": "gym_machines",
@@ -296,7 +316,10 @@
     "Go round them in a loop."
    ],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": [
+    "machines"
+   ]
   },
   {
    "id": "one_leg",
@@ -331,7 +354,8 @@
     "Lift one foot. Then swap."
    ],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": []
   },
   {
    "id": "balance_basics",
@@ -363,7 +387,8 @@
    },
    "steps": [],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": []
   },
   {
    "id": "tai_chi",
@@ -395,7 +420,8 @@
    },
    "steps": [],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": []
   },
   {
    "id": "tai_chi_long",
@@ -427,7 +453,8 @@
    },
    "steps": [],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": []
   },
   {
    "id": "balance_walk",
@@ -463,7 +490,8 @@
     "For a few stretches of it, walk heel to toe, like on a line."
    ],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": []
   },
   {
    "id": "brisk_walk",
@@ -495,7 +523,8 @@
     "You should still be able to talk."
    ],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": []
   },
   {
    "id": "walk_bursts",
@@ -528,7 +557,8 @@
     "Every few minutes, go as fast as you can for a short burst."
    ],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": []
   },
   {
    "id": "jw_cardio",
@@ -561,7 +591,8 @@
    },
    "steps": [],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": []
   },
   {
    "id": "jw_strength_cardio",
@@ -594,7 +625,10 @@
    },
    "steps": [],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": [
+    "dumbbells"
+   ]
   },
   {
    "id": "bike_intervals",
@@ -626,7 +660,10 @@
     "Then ride hard for a short burst. Then easy again. Repeat."
    ],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": [
+    "bike"
+   ]
   },
   {
    "id": "lift_then_ride",
@@ -654,7 +691,11 @@
     "Then ride the bike at a steady pace."
    ],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": [
+    "machines",
+    "bike"
+   ]
   },
   {
    "id": "swim",
@@ -678,7 +719,10 @@
    "video": null,
    "steps": [],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": [
+    "pool"
+   ]
   },
   {
    "id": "desk_yoga",
@@ -709,7 +753,10 @@
    },
    "steps": [],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": [
+    "chair"
+   ]
   },
   {
    "id": "nia_flex",
@@ -740,7 +787,10 @@
    },
    "steps": [],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": [
+    "mat"
+   ]
   },
   {
    "id": "ros_pilates",
@@ -772,7 +822,10 @@
    },
    "steps": [],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": [
+    "mat"
+   ]
   },
   {
    "id": "chair_yoga",
@@ -805,7 +858,10 @@
    },
    "steps": [],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": [
+    "chair"
+   ]
   },
   {
    "id": "chair_stretch",
@@ -836,7 +892,10 @@
    },
    "steps": [],
    "reviewed": true,
-   "clinical_review": "pending"
+   "clinical_review": "pending",
+   "needs": [
+    "chair"
+   ]
   }
  ]
 }

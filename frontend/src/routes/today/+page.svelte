@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api, getPersona, getEquipment, getNow, getTaste, setVote, type Taste, type Vote } from '$lib/api';
+	import { api, getPersona, getEquipment, getNow, getTaste, setVote, getProfile, type Taste, type Vote } from '$lib/api';
 	import { COPY } from '$lib/copy';
 	import Speak from '$lib/Speak.svelte';
 	import Latency from '$lib/Latency.svelte';
@@ -17,7 +17,7 @@
 		const p = getPersona();
 		try {
 			taste = getTaste(p);
-			data = await api.today(p, { at: getNow(), equipment: getEquipment(p) ?? undefined, override_sleep: overridden, taste });
+			data = await api.today(p, { at: getNow(), equipment: getEquipment(p) ?? undefined, override_sleep: overridden, taste, profile: getProfile(p) });
 			err = '';
 		} catch (e: any) {
 			err = e.status ?? 'offline';
