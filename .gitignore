@@ -8,3 +8,4 @@ build/
 data/apple_health/*.zip
 data/apple_health/export_full.xml
 .recording/
+resulttable
