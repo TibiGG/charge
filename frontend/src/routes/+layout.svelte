@@ -30,7 +30,8 @@
 		<a href="/today" aria-current={page.url.pathname === '/today' ? 'page' : undefined}>{COPY.nav.today}</a>
 		<a href="/activity" aria-current={page.url.pathname === '/activity' ? 'page' : undefined}>{COPY.nav.activity}</a>
 		<a href="/user" aria-current={page.url.pathname === '/user' ? 'page' : undefined}>{COPY.nav.user}</a>
-		<a href="/ask" aria-current={page.url.pathname === '/ask' ? 'page' : undefined}>{COPY.nav.ask}</a>
+		<!-- Ask tab disabled for now; the /ask route and its API are kept. -->
+		<!-- <a href="/ask" aria-current={page.url.pathname === '/ask' ? 'page' : undefined}>{COPY.nav.ask}</a> -->
 	</nav>
 	<label class="persona">
 		<span class="sr-only">Demo person</span>
