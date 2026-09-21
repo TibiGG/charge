@@ -1,0 +1,21 @@
+# Render Blueprint for the Charge API (replaces the hackathon's Cloud Run service).
+# Render → New → Blueprint → pick this repo. It builds backend/Dockerfile, so the
+# ProbLog and model smoke tests still fail a bad build before it goes live.
+services:
+  - type: web
+    name: charge-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    # Closest Render region to London.
+    region: frankfurt
+    # Free sleeps after 15 min idle, and at 0.1 CPU most day plans hit the 6s
+    # timeout and show the quick answer. Starter (0.5 CPU, always on) serves full
+    # proofs in ~0.5s — switch it in the dashboard before a live demo.
+    plan: free
+    healthCheckPath: /api/health
+    autoDeploy: true
+    # Frontend-only commits (Vercel) shouldn't rebuild the API.
+    buildFilter:
+      paths:
+        - backend/**
