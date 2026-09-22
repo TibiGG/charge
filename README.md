@@ -125,6 +125,32 @@ runs a ProbLog smoke test **and** a model smoke test at build time, so a broken 
 instead of the demo. `--min-instances=1` keeps one instance warm (no 10–20s cold start on a judge's
 first click); drop it to 0 to stop paying for an idle service.
 
+## Production (work in progress, branch `production`)
+
+`charge-bupa.vercel.app` stays the hackathon demo. The production app deploys to
+**charge-bupa-dev.vercel.app** (`scripts/deploy-dev.sh`), backed by one Oracle Cloud
+Always Free VM running Caddy + the API + PocketBase (`infra/oracle/`).
+
+- **Accounts**: PocketBase (email + password; Google and Apple once their client ids are set).
+  Bupa account association sits in *You* as a placeholder until there is a Bupa integration.
+- **Data**: workouts, sleep, votes, skips and consent live in PocketBase
+  (`pocketbase/pb_migrations`). People can read only their own rows; every write goes through the API.
+- **Watch**: the Health `export.zip` upload (parsed in the background), plus an iOS Shortcut that
+  POSTs workouts to `/api/sync/workouts` with a personal key.
+- **Batteries**: weighted minutes (duration × intensity from effort or heart rate) against weekly
+  targets, emptied every Monday in the person's time zone.
+- **Variety**: ideas shown on the last two days rank lower (`p_recent`), and *Something else* skips
+  an idea until tomorrow. Both show up in "Why this?".
+
+```bash
+cd infra/oracle && terraform init && terraform apply   # the VM (once)
+infra/oracle/deploy.sh                                 # ship / update the backend
+scripts/deploy-dev.sh                                  # ship the web app
+PB_BIN=/path/to/pocketbase make test                   # includes the signed-in journey
+```
+
+Secrets live in `~/.config/charge/oracle.env` (made by `deploy.sh`), never in the repo.
+
 ## Layout
 
 ```

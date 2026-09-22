@@ -6,4 +6,4 @@ set -euo pipefail
 export VERCEL_ORG_ID=ciKJeIwMcIgzSgGVFAfRKjFN
 export VERCEL_PROJECT_ID=prj_5BbcfNaRswLQMVIKUcQ9EsKXbU4w
 cd "$(dirname "$0")/../frontend"
-vercel deploy --prod --yes
+npx -y vercel@latest deploy --prod --yes
