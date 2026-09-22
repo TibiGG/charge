@@ -224,8 +224,10 @@ def all_clause_ids() -> list[tuple[str, str, float | str]]:
 
 def candidate_facts(cands: list[dict], daypart: str, deficits: dict[str, float],
                     bedtime_min: int | None, override_sleep: bool, taste: dict[str, str] | None = None,
-                    kind_less: set[str] | None = None, kit: dict | None = None) -> str:
+                    kind_less: set[str] | None = None, kit: dict | None = None,
+                    recent: set[str] | None = None) -> str:
     lines = [f"now_daypart({daypart})."]
+    lines += [f"recently_suggested({_atom(a)})." for a in sorted(recent or ())]
     lines += kit_facts(kit)
     lines += [f"user_taste({v}, {_atom(a)})." for a, v in sorted((taste or {}).items()) if v in ("more", "less")]
     lines += [f"kind_taste(less, {k})." for k in sorted(kind_less or ())]
@@ -322,4 +324,4 @@ def logic_for(facts: str, query: str, rule_ids: set[str], cand_id: str) -> dict:
 
 
 def warm() -> None:
-    evaluate("person(u1). age(u1, 40). observed(u1, strength_days_per_week, 0.0).")
+    evaluate("person(u1). age(u1, 40). observed(u1, strength_min_per_week, 0.0).")

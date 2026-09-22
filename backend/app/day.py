@@ -24,6 +24,7 @@ from reasoner import engine
 log = logging.getLogger("charge.day")
 
 CATALOG: list[dict] = json.loads((DATA / "catalog.json").read_text())["activities"]
+CATALOG_IDS = {a["id"] for a in CATALOG}
 TIERS = {"none", "home", "gym"}
 TOP_K = 8
 KIND_LEARN_AT = 2  # "less" votes on one kind before we learn to rank that whole kind lower
@@ -252,8 +253,12 @@ def _card(daypart: str, status: str) -> dict:
 
 def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_sleep: bool = False,
              force_fallback: bool = False, taste: dict[str, str] | None = None,
-             kit: dict | None = None, persona_overrides: dict | None = None) -> dict:
-    """`taste` = {action: "more" | "less"}, the person's own votes (kept in their browser)."""
+             kit: dict | None = None, persona_overrides: dict | None = None, persona: dict | None = None,
+             recent: set[str] | None = None, skip: set[str] | None = None) -> dict:
+    """`taste` = {action: "more" | "less"}, the person's own votes.
+    `persona` = a signed-in person's record (else the demo persona `pid` is loaded).
+    `recent` = activity ids suggested on the last two days (ranked a bit lower, for variety).
+    `skip` = activity ids they turned down today with "Something else" (never shown again today)."""
     t0 = time.perf_counter()
     timings: dict[str, float] = {}
 
@@ -262,7 +267,9 @@ def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_
         timings[k] = round(timings.get(k, 0) + (now - since) * 1000, 1)
         return now
 
-    persona = {**load_persona(pid), **(persona_overrides or {})}
+    persona = {**(persona or load_persona(pid)), **(persona_overrides or {})}
+    recent = {r for r in (recent or ()) if r in CATALOG_IDS}
+    skip = {x for x in (skip or ()) if x in CATALOG_IDS}
     genome = load_genome(persona)
     kit = resolve_kit(persona, tier, kit)
     tier = tier_of(kit)
@@ -270,7 +277,7 @@ def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_
     fills = {b["id"]: b["fill"] for b in batteries["batteries"]}
     deficits = {b: 1 - f for b, f in fills.items()}
     habits = set(persona.get("habits", []))
-    cal = load_calendar(persona.get("calendar", "default.json"))
+    cal = persona.get("calendar_data") or load_calendar(persona.get("calendar", "default.json"))
     day = date.fromisoformat(persona["as_of"])
     at = at or datetime.now().strftime("%H:%M")
     now_dt = datetime.combine(day, datetime.strptime(at, "%H:%M").time())
@@ -283,7 +290,7 @@ def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_
     base = engine.evaluate(person) if not force_fallback else {"helps": {}, "rules": {}, "edges": {}}
     t = mark("problog_evidence", t)
 
-    cards, picked = [], set()
+    cards, picked = [], set(skip)
     live_idx = DAYPART_ORDER.index(live) if live else (3 if minutes_of(at) > minutes_of("22:00") else -1)
     for i, dp in enumerate(DAYPART_ORDER):
         status = "live" if i == live_idx else ("past" if i < live_idx else "later")
@@ -307,8 +314,10 @@ def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_
             pool = _prefilter(kit, dp, base["helps"], fills, habits, picked, taste, kind_less, ruled_out)
         extras = [{**a, "primary_battery": max(a["batteries"], key=lambda b: 1 - fills[b])}
                   for a in ruled_out[:MAX_RULED_OUT]]
+        skipped_here = any(dp in a["daypart"] for a in CATALOG if a["id"] in skip)
         if not pool:
-            card.update(state="none", text={"preview": "Nothing needed here today."})
+            card.update(state="none", text={"preview": "That's every idea we have for now. Try again tomorrow."
+                                            if skipped_here else "Nothing needed here today."})
             continue
 
         with_slot = []
@@ -333,7 +342,7 @@ def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_
                 result, deriv = None, engine.fallback(batteries)["because"]
             else:
                 facts = person + "\n" + engine.candidate_facts([short] + extras, dp, deficits, None, override_sleep,
-                                                               taste, kind_less, kit)
+                                                               taste, kind_less, kit, recent)
                 result = engine.evaluate_day(facts)
                 t = mark("problog_rank", t)
                 deriv = engine.derivation(short["action"], result, batteries)["because"]
@@ -358,7 +367,7 @@ def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_
             deriv = engine.fallback(batteries)["because"]
         else:
             facts = person + "\n" + engine.candidate_facts(cands + extras, dp, deficits, bedtime, override_sleep,
-                                                           taste, kind_less, kit)
+                                                           taste, kind_less, kit, recent)
             result = engine.evaluate_day(facts)
             t = mark("problog_rank", t)
             by_id = {c["id"]: c for c in cands}
@@ -376,6 +385,9 @@ def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_
         card["derivation"] = deriv
         card["context"] = _context(win, dp, win["slot"], batteries, persona, kit, result, override_sleep, taste,
                                    kind_less, ruled_out)
+        if win["id"] in recent:
+            card["context"].append({"kind": "variety", "health_claim": False, "source_id": None,
+                                    "text": "We suggested this recently. It still came out on top, so we kept it."})
         card["sources"] = _sources_for(deriv + card["context"])
         if result:
             card["ranking"] = [{"id": k, "title": by_id[k]["title"], "score": round(v, 3),
@@ -410,6 +422,9 @@ def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_
 
     for card in cards:
         ensure_why(card, batteries, persona)
+        if card.get("activity") and any(card["daypart"] in a["daypart"] for a in CATALOG if a["id"] in skip):
+            card["context"].insert(0, {"kind": "skip", "health_claim": False, "source_id": None,
+                                       "text": "You asked for something else, so this is our next best idea."})
     timings["total"] = round((time.perf_counter() - t0) * 1000, 1)
     return {"persona": {"id": persona["id"], "name": persona["name"]}, "at": at, "live": live,
             "equipment": tier, "kit": kit, "bedtime": _clock(bedtime) if bedtime is not None else None,

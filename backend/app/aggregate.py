@@ -14,12 +14,17 @@ SOURCES: dict = json.loads((DATA / "sources.json").read_text())
 TARGETS: dict = json.loads((DATA / "targets.json").read_text())
 BATTERY_ORDER = ["strength", "cardio", "peak", "balance", "mobility"]
 
-STRENGTH_TYPES = {"TraditionalStrengthTraining", "FunctionalStrengthTraining", "CoreTraining"}
-CARDIO_TYPES = {"Cycling", "Running", "Walking", "Elliptical", "Rowing", "Swimming",
-                "HighIntensityIntervalTraining"}
-MOBILITY_TYPES = {"Yoga", "Pilates", "Flexibility", "Cooldown"}
+STRENGTH_TYPES = {"TraditionalStrengthTraining", "FunctionalStrengthTraining", "CoreTraining", "CrossTraining",
+                  "Climbing"}
+CARDIO_TYPES = {"Cycling", "Running", "Walking", "Elliptical", "Rowing", "Swimming", "Hiking", "MixedCardio",
+                "HighIntensityIntervalTraining", "StairClimbing", "Stairs", "Dance", "SocialDance", "CardioDance",
+                "Boxing", "Kickboxing", "MartialArts", "CrossTraining", "JumpRope", "Soccer", "Basketball",
+                "Tennis", "Badminton", "Squash", "Paddling", "SkatingSports", "CrossCountrySkiing",
+                "DownhillSkiing", "Snowboarding", "WheelchairWalkPace", "WheelchairRunPace", "HandCycling",
+                "WaterFitness", "Pickleball", "Hockey", "Rugby", "Netball", "Volleyball"}
+MOBILITY_TYPES = {"Yoga", "Pilates", "Flexibility", "Cooldown", "MindAndBody"}
 BALANCE_FULL = {"TaiChi", "Barre"}
-BALANCE_PARTIAL = {"Yoga": 0.5}  # partial credit
+BALANCE_PARTIAL = {"Yoga": 0.5, "Pilates": 0.5, "Dance": 0.5, "SocialDance": 0.5, "MartialArts": 0.5}  # partial credit
 
 BANDS = [(1.0, "topped_up", "Topped up"), (0.5, "ticking_over", "Ticking over"),
          (0.0, "room_to_grow", "Room to grow")]
@@ -44,14 +49,45 @@ def load_persona(pid: str) -> dict:
 
 
 def load_genome(p: dict) -> dict:
+    """The Bupa genome report, if they have one. Without it the genomic rules simply don't fire."""
+    if p.get("genome"):
+        return p["genome"]
+    if not p.get("genome_report"):
+        return {"panels": []}
     return json.loads((DATA / "genome" / p["genome_report"]).read_text())
 
 
-def is_vigorous(w: dict, age: int) -> bool:
+# ACSM intensity bands as a share of age-predicted max heart rate (220 - age).
+HR_MODERATE, HR_VIGOROUS = 0.64, 0.77
+# What we assume when there is no heart rate and no effort: roughly the MET class of each type.
+TYPE_INTENSITY = {"HighIntensityIntervalTraining": "vigorous", "Running": "vigorous",
+                  "Yoga": "light", "Flexibility": "light", "Cooldown": "light", "TaiChi": "light"}
+EFFORT = {"easy": "light", "moderate": "moderate", "hard": "vigorous"}
+MIN_SESSION_MIN = 5.0  # shorter than this is a fidget, not a session
+
+# Minutes x intensity. Cardio follows WHO (1 vigorous minute = 2 moderate); light
+# activity is half credit (a product choice: better than nothing, not the target).
+# Strength, balance and mobility use a gentler spread so one long, hard session
+# can't fill the whole week on its own.
+CARDIO_WEIGHT = {"light": 0.5, "moderate": 1.0, "vigorous": 2.0}
+OTHER_WEIGHT = {"light": 0.75, "moderate": 1.0, "vigorous": 1.25}
+
+
+def intensity_of(w: dict, age: int) -> str:
+    """light | moderate | vigorous. Their own effort rating wins, then heart rate, then the type."""
+    if w.get("effort") in EFFORT and w.get("source") != "watch":
+        return EFFORT[w["effort"]]
     if w["type"] == "HighIntensityIntervalTraining":
-        return True
+        return "vigorous"
     hr = w.get("mean_hr")
-    return bool(hr) and hr > 0.85 * (220 - age)
+    if hr:
+        share = float(hr) / (220 - age)
+        return "vigorous" if share >= HR_VIGOROUS else "moderate" if share >= HR_MODERATE else "light"
+    return TYPE_INTENSITY.get(w["type"], "moderate")
+
+
+def is_vigorous(w: dict, age: int) -> bool:
+    return intensity_of(w, age) == "vigorous"
 
 
 # Manual log (Activity tab): what each kind of activity counts towards by default.
@@ -110,49 +146,46 @@ def with_extra(p: dict, logs: list[dict] | None, synced: bool) -> dict:
     return {**p, "workouts": p["workouts"] + extra} if extra else p
 
 
+def contributions(w: dict, age: int) -> dict[str, float]:
+    """Weighted minutes this one workout adds to each battery's weekly metric."""
+    mins = float(w["duration_min"])
+    if mins < MIN_SESSION_MIN:
+        return {}
+    level = intensity_of(w, age)
+    c = counts_for(w, age)
+    out: dict[str, float] = {}
+    if "cardio" in c:
+        out["cardio"] = mins * CARDIO_WEIGHT[level]
+    if "peak" in c and (level == "vigorous" or w.get("counts") is not None):
+        out["peak"] = mins  # explicit ticks win: they told us it was hard work
+    for b in ("strength", "mobility"):
+        if b in c:
+            out[b] = mins * OTHER_WEIGHT[level]
+    if "balance" in c:
+        share = 1.0 if w.get("counts") is not None else BALANCE_PARTIAL.get(w["type"], 1.0)
+        out["balance"] = mins * OTHER_WEIGHT[level] * share
+    return out
+
+
+METRIC_OF = {"strength": "strength_min_per_week", "cardio": "moderate_equiv_min_per_week",
+             "peak": "vigorous_min_per_week", "balance": "balance_min_per_week",
+             "mobility": "mobility_min_per_week"}
+
+
 def window_metrics(workouts: list[dict], age: int, start: date, end: date) -> dict:
-    """Metrics over [start, end] inclusive."""
-    strength_days, mobility_days, balance = set(), set(), {}
-    moderate = vigorous = 0.0
+    """Weighted minutes per battery over [start, end] inclusive."""
+    totals = {m: 0.0 for m in METRIC_OF.values()}
     for w in workouts:
         d = datetime.fromisoformat(w["start"]).date()
-        if not (start <= d <= end):
-            continue
-        t, mins = w["type"], float(w["duration_min"])
-        if w.get("counts") is not None:  # the person's own ticks from the Activity tab
-            c = counts_for(w, age)
-            if "strength" in c:
-                strength_days.add(d)
-            if "peak" in c:
-                vigorous += mins
-            elif "cardio" in c:
-                moderate += mins
-            if "mobility" in c:
-                mobility_days.add(d)
-            if "balance" in c:
-                balance[d] = 1.0
-            continue
-        if t in STRENGTH_TYPES:
-            strength_days.add(d)
-        if t in CARDIO_TYPES:
-            if is_vigorous(w, age):
-                vigorous += mins
-            else:
-                moderate += mins
-        if t in MOBILITY_TYPES:
-            mobility_days.add(d)
-        credit = 1.0 if t in BALANCE_FULL else BALANCE_PARTIAL.get(t, 0.0)
-        if credit:
-            balance[d] = max(balance.get(d, 0.0), credit)
-    return {
-        "strength_days_per_week": float(len(strength_days)),
-        "moderate_aerobic_min_per_week": moderate,
-        "vigorous_min_per_week": vigorous,
-        # WHO: 75 vigorous ~ 150 moderate, so 1 vigorous minute counts as 2 moderate.
-        "moderate_equiv_min_per_week": moderate + 2 * vigorous,
-        "balance_days_per_week": sum(balance.values()),
-        "mobility_days_per_week": float(len(mobility_days)),
-    }
+        if start <= d <= end:
+            for b, v in contributions(w, age).items():
+                totals[METRIC_OF[b]] += v
+    return {k: round(v, 1) for k, v in totals.items()}
+
+
+def week_start(d: date) -> date:
+    """Batteries empty every Monday: the week runs Monday to Sunday in the person's own time zone."""
+    return d - timedelta(days=d.weekday())
 
 
 def band_for(fill: float) -> dict:
@@ -164,8 +197,9 @@ def band_for(fill: float) -> dict:
 
 def compute_batteries(p: dict) -> dict:
     as_of = date.fromisoformat(p["as_of"])
-    this_week = window_metrics(p["workouts"], p["age"], as_of - timedelta(days=6), as_of)
-    last_week = window_metrics(p["workouts"], p["age"], as_of - timedelta(days=13), as_of - timedelta(days=7))
+    monday = week_start(as_of)
+    this_week = window_metrics(p["workouts"], p["age"], monday, as_of)
+    last_week = window_metrics(p["workouts"], p["age"], monday - timedelta(days=7), monday - timedelta(days=1))
     daily = p.get("daily", [])[-7:]
     sleep = round(sum(d["sleep_hours"] for d in daily) / len(daily), 1) if daily else None
 
@@ -188,5 +222,6 @@ def compute_batteries(p: dict) -> dict:
         "metrics": this_week,
         "sleep_hours_mean": sleep,
         "vo2max": p.get("vo2max"),
-        "window": {"start": (as_of - timedelta(days=6)).isoformat(), "end": as_of.isoformat()},
+        "window": {"start": monday.isoformat(), "end": as_of.isoformat(),
+                   "resets": (monday + timedelta(days=7)).isoformat(), "days_left": 7 - as_of.weekday()},
     }

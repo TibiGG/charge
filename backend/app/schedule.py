@@ -89,7 +89,8 @@ def slot_for(cal: dict, day: date, daypart: str, minutes: int, earliest: datetim
             s, e = g0, g0 + timedelta(minutes=minutes)
             return {"start": s.isoformat(), "end": e.isoformat(), "end_min": e.hour * 60 + e.minute,
                     "label": f"{s.strftime('%A')}, {_clock(s)}",
-                    "reason": f"You're free from {_clock(g0)}."}
+                    "reason": (f"It's the first open time in your {daypart}." if cal.get("unknown_calendar")
+                               else f"You're free from {_clock(g0)}.")}
     return None
 
 

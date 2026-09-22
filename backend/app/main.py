@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 from contextlib import asynccontextmanager
@@ -11,7 +12,7 @@ from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from app import aggregate, scope_guard
+from app import accounts, aggregate, scope_guard
 from app.aggregate import (BATTERY_ORDER, MANUAL_TYPES, SOURCES, WEARABLE_PENDING, TARGETS, compute_batteries, counts_for,
                            load_persona, with_extra)
 from app.day import CATALOG, GYM_DEFAULT, KIT_WORDS, TIERS, plan_day_with_timeout, resolve_kit
@@ -29,9 +30,21 @@ async def lifespan(_app):
 
 
 app = FastAPI(title="Charge", lifespan=lifespan)
-# Vercel previews get random subdomains, so a regex, not a fixed list.
-app.add_middleware(CORSMiddleware, allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:5173",
+# Vercel previews get random subdomains, so a regex, not a fixed list. CORS_ORIGINS adds a custom domain.
+_extra = "|".join(re.escape(o.strip()) for o in os.environ.get("CORS_ORIGINS", "").split(",") if o.strip())
+app.add_middleware(CORSMiddleware,
+                   allow_origin_regex=r"https://charge[a-z0-9-]*\.vercel\.app|http://localhost:5173" + (f"|{_extra}" if _extra else ""),
                    allow_methods=["*"], allow_headers=["*"])
+app.include_router(accounts.router)
+
+# The demo personas are shared by everyone, so the endpoints that change them are off in
+# production (CHARGE_DEMO_WRITES=0). Signed-in people use /api/me/* instead.
+DEMO_WRITES = os.environ.get("CHARGE_DEMO_WRITES", "1") == "1"
+
+
+def _demo_writes_only():
+    if not DEMO_WRITES:
+        raise HTTPException(403, "sign in to add your own data")
 
 
 def _persona_or_404(pid: str) -> dict:
@@ -288,7 +301,8 @@ class SampleIn(BaseModel):
 
 @app.post("/api/ingest/sample")
 def ingest_sample(s: SampleIn):
-    """Live sample from the iOS Shortcut running on the watch."""
+    """Live sample from the iOS Shortcut running on the watch (demo personas only)."""
+    _demo_writes_only()
     p = _persona_or_404(s.persona)
     typ = "Walking" if s.metric in ("exercise_minutes", "AppleExerciseTime") else s.metric.replace("HKWorkoutActivityType", "")
     start = s.start or f"{p['as_of']}T{datetime.now().strftime('%H:%M:%S')}"
@@ -299,12 +313,14 @@ def ingest_sample(s: SampleIn):
 
 @app.delete("/api/ingest/sample")
 def reset_live():
+    _demo_writes_only()
     aggregate.LIVE_WORKOUTS.clear()
     return {"ok": True}
 
 
 @app.post("/api/ingest/apple-health")
 async def ingest_apple_health(file: UploadFile):
+    _demo_writes_only()
     from ingest.apple_health import parse_export_stream
     return parse_export_stream(file.file)
 

@@ -36,7 +36,10 @@ def test_parse_fixture_streams_expected_records():
 def test_hr_promotes_cycling_to_vigorous():
     p = parse(str(FIXTURE))
     b = aggregate.compute_batteries(p)
-    assert b["metrics"]["vigorous_min_per_week"] == 40  # the 149bpm ride at age 54 (>141)
+    # Both rides this week (Mon 128bpm, Wed 149bpm) are >= 77% of 220-54=166: vigorous.
+    assert b["metrics"]["vigorous_min_per_week"] == 85
+    # ...and each vigorous minute counts double towards cardio (WHO); the 104bpm walks are light, half credit.
+    assert b["metrics"]["moderate_equiv_min_per_week"] == 170
 
 
 def test_zip_upload_via_api():
@@ -55,9 +58,26 @@ def test_zip_upload_via_api():
 def test_live_sample_fills_vial():
     with TestClient(app) as c:
         before = next(b for b in c.get("/api/batteries/margaret").json()["batteries"] if b["id"] == "strength")
-        r = c.post("/api/ingest/sample", json={"metric": "TraditionalStrengthTraining", "value": 20,
+        r = c.post("/api/ingest/sample", json={"metric": "TraditionalStrengthTraining", "value": 30,
                                                "persona": "margaret", "device": "watch"})
         assert r.status_code == 200
         after = next(b for b in c.get("/api/batteries/margaret").json()["batteries"] if b["id"] == "strength")
         assert after["fill"] > before["fill"]
         assert after["band"]["label"] == "Ticking over"
+
+
+def test_battery_resets_on_monday_and_weighs_time_and_effort():
+    from datetime import date
+    base = {"age": 40, "workouts": []}
+    w = lambda d, mins, effort: {"type": "TraditionalStrengthTraining", "start": f"{d}T08:00:00",
+                                 "duration_min": mins, "effort": effort, "source": "you"}
+    sunday = {**base, "as_of": "2026-09-20", "workouts": [w("2026-09-14", 30, "moderate")]}
+    monday = {**sunday, "as_of": "2026-09-21"}
+    s_sun = next(b for b in aggregate.compute_batteries(sunday)["batteries"] if b["id"] == "strength")
+    s_mon = next(b for b in aggregate.compute_batteries(monday)["batteries"] if b["id"] == "strength")
+    assert s_sun["value"] == 30 and s_mon["value"] == 0 and s_mon["previous_value"] == 30
+    # Longer and harder counts for more; a 3-minute fidget counts for nothing.
+    val = lambda *ws: aggregate.window_metrics(list(ws), 40, date(2026, 9, 14), date(2026, 9, 20))["strength_min_per_week"]
+    assert val(w("2026-09-15", 60, "moderate")) == 2 * val(w("2026-09-15", 30, "moderate"))
+    assert val(w("2026-09-15", 30, "hard")) > val(w("2026-09-15", 30, "moderate")) > val(w("2026-09-15", 30, "easy"))
+    assert val(w("2026-09-15", 3, "hard")) == 0

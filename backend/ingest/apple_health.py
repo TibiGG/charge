@@ -54,10 +54,13 @@ def _open(src) -> BinaryIO:
     return f
 
 
-def parse(src, sample: bool = False, age: int | None = None, max_records: int = 200_000) -> dict:
-    """Stream-parse an export into a persona-shaped dict (same shape as data/personas/*.json)."""
+def parse(src, sample: bool = False, age: int | None = None, max_records: int | None = 200_000,
+          since: str | None = None) -> dict:
+    """Stream-parse an export into a persona-shaped dict (same shape as data/personas/*.json).
+    `since` (YYYY-MM-DD) skips anything older cheaply, on the raw date string, before parsing it."""
     workouts: list[dict] = []
     daily: dict[str, dict] = defaultdict(lambda: {"steps": 0.0, "exercise_min": 0.0, "sleep_hours": 0.0})
+    onset: dict[str, datetime] = {}  # wake day -> earliest time they fell asleep
     latest: dict[str, tuple[datetime, float]] = {}
     dob: date | None = None
     sex = None
@@ -74,6 +77,8 @@ def parse(src, sample: bool = False, age: int | None = None, max_records: int = 
             if s:
                 dob = date.fromisoformat(s)
             sex = (a.get("HKCharacteristicTypeIdentifierBiologicalSex") or "").replace("HKBiologicalSex", "").lower() or None
+        elif since and (a.get("startDate") or "9") < since:
+            pass  # too old to matter for this week or last
         elif tag == "Workout":
             start = _dt(a["startDate"])
             hr = None
@@ -103,12 +108,16 @@ def parse(src, sample: bool = False, age: int | None = None, max_records: int = 
             elif typ == SLEEP and (a.get("value") or "").startswith(ASLEEP_VALUES):
                 s, e = _dt(a["startDate"]), _dt(a["endDate"])
                 # Attribute sleep to the day you wake up.
-                daily[e.date().isoformat()]["sleep_hours"] += (e - s).total_seconds() / 3600
+                wake = e.date().isoformat()
+                daily[wake]["sleep_hours"] += (e - s).total_seconds() / 3600
+                # Only evening/night starts count as falling asleep (not an afternoon nap).
+                if (s.hour >= 18 or s.hour < 6) and (wake not in onset or s < onset[wake]):
+                    onset[wake] = s
         # Free memory: clear this element and any already-processed siblings.
         el.clear(keep_tail=False)
         while el.getprevious() is not None:
             del el.getparent()[0]
-        if sample and n >= 5000 or n >= max_records:
+        if sample and n >= 5000 or (max_records and n >= max_records):
             break
     del ctx
 
@@ -117,13 +126,16 @@ def parse(src, sample: bool = False, age: int | None = None, max_records: int = 
     if age is None:
         age = (date.fromisoformat(as_of) - dob).days // 365 if dob else 50
     days = [{"date": d, "steps": round(v["steps"]), "sleep_hours": round(v["sleep_hours"], 2),
-             "exercise_min": round(v["exercise_min"])} for d, v in sorted(daily.items())][-14:]
+             "exercise_min": round(v["exercise_min"]),
+             "sleep_onset": onset[d].strftime("%H:%M") if d in onset else None}
+            for d, v in sorted(daily.items())][-14:]
     return {
         "id": "imported", "name": "You", "age": age, "sex": sex or "unknown", "menopause_status": None,
         "habits": [], "as_of": as_of, "watch_connected": True, "genome_report": "sam.json",
         "calendar": "default.json", "workouts": workouts, "daily": [d for d in days if d["sleep_hours"] or d["steps"]],
         "vo2max": latest.get("vo2max", (None, None))[1], "resting_hr": latest.get("resting_hr", (None, None))[1],
         "hrv_sdnn": latest.get("hrv", (None, None))[1], "records_read": n,
+        "dob": dob.isoformat() if dob else None,
     }
 
 

@@ -49,11 +49,11 @@ def compare(value: float, target: float) -> str:
 def observation_sentence(bid: str, value: float, target: float) -> str:
     v, t = _n(value), _n(target)
     line = {
-        "strength": f"Your watch shows muscle work on {v} days this week. People are advised to aim for {t}.",
-        "cardio": f"Your watch shows {v} minutes of activity that warms you up this week. People are advised to aim for {t}.",
-        "peak": f"Your watch shows {v} minutes of hard effort this week. One aim is {t} minutes.",
-        "balance": f"Your watch shows balance work on {v} days this week. People over 65 are advised to aim for {t}.",
-        "mobility": f"Your watch shows stretching on {v} days this week. We suggest {t}. This aim is not from a health body.",
+        "strength": f"You've done {v} minutes of muscle work this week. We aim for {t}, which is 2 sessions of 30.",
+        "cardio": f"You've done {v} minutes of activity that warms you up this week. People are advised to aim for {t}.",
+        "peak": f"You've done {v} minutes of hard effort this week. One aim is {t} minutes.",
+        "balance": f"You've done {v} minutes of balance work this week. We aim for {t}, which is 3 sessions of 20.",
+        "mobility": f"You've done {v} minutes of stretching this week. We suggest {t}. This aim is not from a health body.",
     }[bid]
     return f"{line} {compare(value, target)}"
 

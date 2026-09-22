@@ -1,0 +1,15 @@
+#cloud-config
+# Docker + open 80/443 in the host firewall (Oracle's Ubuntu images REJECT everything
+# but 22 in iptables, on top of the VCN security list).
+package_update: true
+packages:
+  - docker.io
+  - docker-compose-v2
+  - sqlite3
+runcmd:
+  - iptables -I INPUT 6 -p tcp --dport 80 -m state --state NEW -j ACCEPT
+  - iptables -I INPUT 6 -p tcp --dport 443 -m state --state NEW -j ACCEPT
+  - netfilter-persistent save
+  - usermod -aG docker ubuntu
+  - systemctl enable --now docker
+  - mkdir -p /opt/charge && chown ubuntu:ubuntu /opt/charge

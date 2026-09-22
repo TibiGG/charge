@@ -212,5 +212,15 @@
   ],
   "source_id": null,
   "design_note": "When you turn down a few of the same kind, we learn from that. It is your choice, not a health claim."
+ },
+ "p_recent": {
+  "kind": "preference",
+  "health_claim": false,
+  "head": "We suggested this in the last couple of days, so it ranks a bit lower.",
+  "body": [
+   "recently_suggested(activity)"
+  ],
+  "source_id": null,
+  "design_note": "A little variety keeps things fresh. It is a product choice, not a health claim."
  }
 }

@@ -30,6 +30,7 @@ cand_needs(none, none).
 has_item(nobody, none, none).
 gym_window(nobody, 0, 0).
 slot_start_min(none, 0).
+recently_suggested(none).
 
 % ===== 2. GENOMIC REPORT (probabilistic: the probability IS the uncertainty) =====
 % p = modest, calibrated confidence that this marker meaningfully shifts THIS
@@ -147,6 +148,12 @@ kit_found(C, I) :- kit_at(C, I, _).
 missing_kit(C) :- cand_needs(C, I), \+ kit_found(C, I).
 kit_ok(C) :- cand(C), \+ missing_kit(C).
 
+% ===== 7. VARIETY: something we suggested in the last two days ranks a bit lower =====
+% So the plan changes from day to day even when the batteries barely move (a product choice).
+0.80::fresh(C, p_recent) :- recently_suggested(C).
+fresh(C) :- cand(C), \+ recently_suggested(C).
+fresh(C) :- fresh(C, _).
+
 evidence_for(C) :- cand_action(C, A), helps(u1, A).
-good_raw(C) :- need(C, _), evidence_for(C), fits_now(C, _), habit_fit(C), taste_ok(C), kit_ok(C).
+good_raw(C) :- need(C, _), evidence_for(C), fits_now(C, _), habit_fit(C), taste_ok(C), kit_ok(C), fresh(C).
 good(C) :- good_raw(C), \+ sleep_conflict(C).
