@@ -278,3 +278,22 @@ details.daypart.inspect[open] .look { display: none; }
 	.top nav { order: 3; flex-basis: 100%; gap: 2px; }
 	.top nav a { padding: 0 9px; font-size: .95rem; }
 }
+
+/* ---- accounts ---- */
+.demo-banner { margin: 0; padding: 10px 16px; text-align: center; background: var(--glass); color: var(--ink); }
+.demo-banner .link { min-height: 0; margin-left: 6px; }
+.auth-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.auth-tabs button { flex: 1; }
+.auth-tabs button[aria-pressed='true'] { border-color: var(--brand); color: var(--brand); font-weight: 700; }
+.or { text-align: center; color: var(--ink-soft); margin: 12px 0; }
+.error { font-weight: 700; padding: 12px 14px; border-radius: 14px; border: 2px solid var(--ink-soft); }
+.field input, .field select { width: 100%; min-height: 48px; font: inherit; padding: 8px 12px; border-radius: 12px;
+	border: 2px solid var(--line); background: var(--surface); color: var(--ink); box-sizing: border-box; }
+.token { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.token code { flex: 1; min-width: 0; overflow-wrap: anywhere; padding: 10px; border-radius: 10px; background: var(--glass); }
+.token .secondary { width: auto; padding: 0 16px; }
+.days { display: flex; flex-wrap: wrap; gap: 6px; }
+.days label { display: inline-flex; align-items: center; gap: 4px; }
+.danger { border-color: var(--ink-soft); }
+.stack > * + * { margin-top: 10px; }
+.skip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }

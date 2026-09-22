@@ -1,25 +1,61 @@
-import { PUBLIC_API_BASE } from '$env/static/public';
+import { env } from '$env/dynamic/public';
+import { isDemo, signedIn, token } from './auth';
 
-// Empty locally: Vite proxies /api to :8000. On Vercel: the Cloud Run URL.
-const BASE = (PUBLIC_API_BASE ?? '').replace(/\/$/, '');
+// Empty locally: Vite proxies /api to :8000. Deployed: the API's own URL.
+const BASE = (env.PUBLIC_API_BASE ?? '').replace(/\/$/, '');
+
+/** A signed-in person is 'me'; the demo's made-up people have their own ids. */
+export const ME = 'me';
 
 export type Timed<T> = T & { clientMs: number };
 
-async function timed<T>(path: string, init?: RequestInit): Promise<Timed<T>> {
+async function timed<T>(path: string, init: RequestInit = {}): Promise<Timed<T>> {
 	const t = performance.now();
-	const res = await fetch(`${BASE}${path}`, init);
-	if (!res.ok) throw Object.assign(new Error(`HTTP ${res.status}`), { status: res.status });
+	const headers = new Headers(init.headers);
+	if (path.startsWith('/api/me')) headers.set('Authorization', token());
+	const res = await fetch(`${BASE}${path}`, { ...init, headers });
+	if (!res.ok) {
+		let detail = '';
+		try { detail = (await res.json()).detail ?? ''; } catch {}
+		throw Object.assign(new Error(`HTTP ${res.status}`), { status: res.status, detail });
+	}
 	const body = (await res.json()) as T;
 	return { ...body, clientMs: Math.round(performance.now() - t) };
 }
 
+const json = (method: string, body: unknown): RequestInit => ({
+	method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body)
+});
+
+/** The viewer's local date, YYYY-MM-DD. */
+export function localDate(): string {
+	const d = new Date();
+	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function pinnedAt(): string | null {
+	const q = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('at') : null;
+	return q && /^([01]\d|2[0-3]):[0-5]\d$/.test(q) ? q : null;
+}
+
 export const api = {
 	personas: () => timed<any>('/api/personas'),
-	batteries: (p: string, extraLogs: ActivityLog[] = []) => timed<any>(`/api/batteries/${p}?${activityQs(p, extraLogs)}`),
-	activity: (p: string) => timed<any>(`/api/activity/${p}?${activityQs(p)}`),
-	profile: (p: string) => timed<any>(`/api/profile/${p}`),
+	batteries: (p: string, extraLogs: ActivityLog[] = []) => p === ME
+		? timed<any>(`/api/me/batteries${extraLogs.length ? `?logs=${encodeURIComponent(JSON.stringify(extraLogs))}` : ''}`)
+		: timed<any>(`/api/batteries/${p}?${activityQs(p, extraLogs)}`),
+	activity: (p: string) => timed<any>(p === ME ? '/api/me/activity' : `/api/activity/${p}?${activityQs(p)}`),
+	profile: (p: string) => timed<any>(p === ME ? '/api/me/profile' : `/api/profile/${p}`),
 	today: (p: string, q: { at?: string; equipment?: string; override_sleep?: boolean; taste?: Taste; profile?: Profile } = {}) => {
+		if (p === ME) {
+			const qs = new URLSearchParams();
+			const at = pinnedAt();
+			if (at) qs.set('at', at);
+			if (q.override_sleep) qs.set('override_sleep', 'true');
+			return timed<any>(`/api/me/today?${qs}`);
+		}
 		const qs = new URLSearchParams();
+		const skipped = getSkips(p);
+		if (skipped.length) qs.set('skip', skipped.join(','));
 		if (q.at) qs.set('at', q.at);
 		if (q.equipment) qs.set('equipment', q.equipment);
 		if (q.override_sleep) qs.set('override_sleep', 'true');
@@ -43,11 +79,68 @@ export const api = {
 		const fd = new FormData();
 		fd.append('file', file);
 		return timed<any>('/api/ingest/apple-health', { method: 'POST', body: fd });
-	}
+	},
+
+	// ---- signed-in only ----
+	me: () => timed<any>('/api/me'),
+	consent: (version: string) => timed<any>('/api/me/consent', json('POST', { version, scopes: { health_data: true, recommendations: true } })),
+	saveProfile: (body: Record<string, unknown>) => timed<any>('/api/me/profile', json('PUT', body)),
+	importHealth: (file: File) => {
+		const fd = new FormData();
+		fd.append('file', file);
+		return timed<any>('/api/me/import', { method: 'POST', body: fd });
+	},
+	importStatus: (job: string) => timed<any>(`/api/me/import/${job}`),
+	syncToken: () => timed<any>('/api/me/sync-token', { method: 'POST' }),
+	exportData: () => timed<any>('/api/me/export'),
+	deleteAccount: () => timed<any>('/api/me', { method: 'DELETE' }),
+	syncUrl: () => `${BASE || location.origin}/api/sync/workouts`
 };
+
+// ---- Writes: a signed-in person's go to the server; the demo's stay in this browser. ----
+
+export async function addLog(p: string, log: ActivityLog) {
+	if (p === ME) {
+		const { id: _id, ...body } = log;
+		await timed('/api/me/logs', json('POST', body));
+	} else setLogs(p, [...getLogs(p), log]);
+}
+
+export async function removeLog(p: string, id: string) {
+	if (p === ME) await timed(`/api/me/logs/${id}`, { method: 'DELETE' });
+	else setLogs(p, getLogs(p).filter((l) => l.id !== id));
+}
+
+export async function vote(p: string, kind: string, v: Vote | null, current: Taste): Promise<Taste> {
+	if (p !== ME) return setVote(p, kind, v);
+	await timed('/api/me/votes', json('POST', { activity_id: kind, vote: v }));
+	const t = { ...current };
+	if (v) t[kind] = v; else delete t[kind];
+	return t;
+}
+
+/** "Something else": this idea is off the table until tomorrow. */
+export async function skip(p: string, id: string | null) {
+	if (p === ME) {
+		if (id) await timed('/api/me/skip', json('POST', { activity_id: id }));
+		return;
+	}
+	const k = `skips:${p}:${localDate()}`;
+	try { localStorage.setItem(k, JSON.stringify(id ? [...getSkips(p), id] : [])); } catch {}
+}
+
+export function getSkips(p: string): string[] {
+	try { return JSON.parse(localStorage.getItem(`skips:${p}:${localDate()}`) ?? '[]'); } catch { return []; }
+}
+
+export async function saveProfile(p: string, v: Profile & Record<string, unknown>) {
+	if (p === ME) await api.saveProfile(v);
+	else setProfile(p, v);
+}
 
 export function getPersona(): string {
 	if (typeof window === 'undefined') return 'margaret';
+	if (!isDemo() && signedIn()) return ME;
 	const q = new URLSearchParams(location.search).get('p');
 	if (q) {
 		try { localStorage.setItem('persona', q); } catch {}

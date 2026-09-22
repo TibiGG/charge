@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api, getPersona, getEquipment, getNow, getTaste, setVote, getProfile, type Taste, type Vote } from '$lib/api';
+	import { api, getPersona, getEquipment, getNow, getTaste, getProfile, vote as sendVote, skip as sendSkip, getSkips, ME, type Taste, type Vote } from '$lib/api';
 	import { COPY } from '$lib/copy';
 	import Speak from '$lib/Speak.svelte';
 	import Latency from '$lib/Latency.svelte';
@@ -16,8 +16,9 @@
 	async function load() {
 		const p = getPersona();
 		try {
-			taste = getTaste(p);
+			if (p !== ME) taste = getTaste(p);
 			data = await api.today(p, { at: getNow(), equipment: getEquipment(p) ?? undefined, override_sleep: overridden, taste, profile: getProfile(p) });
+			if (p === ME) { taste = data.taste ?? {}; skipped = data.skipped ?? []; } else skipped = getSkips(p);
 			err = '';
 		} catch (e: any) {
 			err = e.status ?? 'offline';
@@ -32,9 +33,24 @@
 	}
 
 	// A vote is the person's argument for or against one activity. We re-rank with it.
-	function vote(id: string, v: Vote | null) {
-		taste = setVote(getPersona(), id, v);
+	async function vote(id: string, v: Vote | null) {
+		taste = await sendVote(getPersona(), id, v, taste);
 		said = v === 'more' ? COPY.day.votedMore : v === 'less' ? COPY.day.votedLess : COPY.day.voteCleared;
+		load();
+	}
+
+	// "Something else": they don't fancy it. That idea is off the table until tomorrow.
+	let skipped = $state<string[]>([]);
+	async function skip(id: string) {
+		await sendSkip(getPersona(), id);
+		said = COPY.today.skipped;
+		load();
+	}
+	async function unskip() {
+		const p = getPersona();
+		if (p === ME) return;
+		await sendSkip(p, null);
+		said = '';
 		load();
 	}
 
@@ -63,6 +79,7 @@
 	{#if said}<p class="done" role="status">{said}</p>{/if}
 
 	{#each cards as card (card.daypart)}
-		<DayCard {card} {whyOpen} overridden={overridden && card.status === 'live'} {taste} onoverride={override} onvote={vote} />
+		<DayCard {card} {whyOpen} overridden={overridden && card.status === 'live'} {taste} onoverride={override} onvote={vote} onskip={skip} />
 	{/each}
+	{#if skipped.length && getPersona() !== ME}<p class="hint"><button class="link" onclick={unskip}>{COPY.today.undoSkip}</button></p>{/if}
 {/if}

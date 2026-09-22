@@ -358,11 +358,12 @@ def my_today(override_sleep: bool = False, at: str | None = None, user: dict = D
     # don't count, so the plan holds steady while they look at it.
     recent = {a for d, row in logs.items() if d != today.isoformat() for a in (row.get("shown") or {}).values()}
     out = plan_day_with_timeout(p["id"], persona=p, at=at or now.strftime("%H:%M"), override_sleep=override_sleep,
-                                taste=store.votes(user["id"]), kit=p["kit"], recent=recent, skip=skip)
+                                taste=(taste := store.votes(user["id"])), kit=p["kit"], recent=recent, skip=skip)
     shown = {c["daypart"]: c["activity"]["id"] for c in out["cards"] if c.get("activity")}
     if shown != (todays.get("shown") or {}):
         store.save_day_log(user["id"], today.isoformat(), shown=shown)
     out["skipped"] = sorted(skip)
+    out["taste"] = taste
     return out
 
 

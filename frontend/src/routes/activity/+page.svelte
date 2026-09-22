@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api, getPersona, getLogs, setLogs, getSynced, setSynced, type ActivityLog } from '$lib/api';
+	import { api, getPersona, getSynced, setSynced, addLog, removeLog, ME, type ActivityLog } from '$lib/api';
 	import { COPY, type BatteryId } from '$lib/copy';
 	import Speak from '$lib/Speak.svelte';
 	import Icon from '$lib/Icon.svelte';
@@ -63,13 +63,14 @@
 	async function save() {
 		const log = { ...draft, id: `log-${Date.now()}` };
 		const before = now;
-		setLogs(persona, [...getLogs(persona), log]);
+		try { await addLog(persona, log); } catch (e: any) { err = e.detail || String(e); return; }
 		await load();
 		justSaved = { before: byId(before), after: byId(now), title: act.types[type].label };
 		note = '';
+		try { after = await api.batteries(persona, [{ ...draft, note: '' }]); } catch {}
 	}
 	async function remove(id: string) {
-		setLogs(persona, getLogs(persona).filter((l) => l.id !== id));
+		await removeLog(persona, id);
 		justSaved = null;
 		await load();
 	}
@@ -139,7 +140,10 @@
 
 	<section class="card">
 		<h2><Icon name="watch" size={24} /> {COPY.activity.fromWatch}</h2>
-		{#if act.pending_sync > 0}
+		{#if persona === ME}
+			<p>{COPY.watch.shortcutBody}</p>
+			<a class="secondary link-btn" href="/user#watch">{COPY.watch.title}</a>
+		{:else if act.pending_sync > 0}
 			<p><strong>{act.pending_sync}</strong> {COPY.activity.found}.</p>
 			<button class="secondary" disabled={syncing} onclick={() => sync(true)}>{syncing ? COPY.activity.syncing : COPY.activity.sync}</button>
 		{:else}

@@ -1,0 +1,41 @@
+# Charge backend on the Oracle VM: Caddy (TLS) -> API + PocketBase.
+# Values come from /opt/charge/.env (made by deploy.sh; never committed).
+services:
+  pocketbase:
+    build: ../../pocketbase
+    restart: unless-stopped
+    volumes:
+      - pb_data:/pb/pb_data
+
+  api:
+    build: ../../backend
+    restart: unless-stopped
+    environment:
+      PORT: "8080"
+      PB_URL: http://pocketbase:8090
+      PB_ADMIN_EMAIL: ${PB_ADMIN_EMAIL}
+      PB_ADMIN_PASSWORD: ${PB_ADMIN_PASSWORD}
+      CHARGE_DEMO_WRITES: "0"
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+    depends_on:
+      - pocketbase
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      API_HOST: ${API_HOST}
+      PB_HOST: ${PB_HOST}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      - api
+      - pocketbase
+
+volumes:
+  pb_data:
+  caddy_data:

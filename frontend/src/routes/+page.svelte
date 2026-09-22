@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api, getPersona, getEquipment, setEquipment, getProfile, setProfile, KIT_PRESETS, tierOf } from '$lib/api';
+	import { api, getPersona, getEquipment, setEquipment, getProfile, saveProfile, KIT_PRESETS, tierOf, ME } from '$lib/api';
 	import { COPY, type BatteryId } from '$lib/copy';
 	import Vial from '$lib/Vial.svelte';
 	import Speak from '$lib/Speak.svelte';
@@ -20,10 +20,11 @@
 	// Their own pick wins; otherwise what we know about them from sign-up.
 	const equipment = $derived(chosen ?? data?.persona?.equipment ?? 'none');
 
-	function pickEquipment(v: string) {
+	async function pickEquipment(v: string) {
 		chosen = v;
 		setEquipment(persona, v);
-		setProfile(persona, { ...getProfile(persona), kit: KIT_PRESETS[v] });  // a starting point; fine-tune in User
+		// A starting point; fine-tune in User.
+		await saveProfile(persona, persona === ME ? { kit: KIT_PRESETS[v] } : { ...getProfile(persona), kit: KIT_PRESETS[v] });
 	}
 
 	async function load() {
@@ -31,11 +32,11 @@
 	}
 	onMount(() => {
 		persona = getPersona();
-		const k = getProfile(persona).kit;
-		chosen = k ? tierOf(k) : getEquipment(persona);
+		const k = persona === ME ? null : getProfile(persona).kit;
+		chosen = k ? tierOf(k) : persona === ME ? null : getEquipment(persona);
 		load();
-		// Live watch samples: poll gently so a tap on the watch fills the vial on screen.
-		const t = setInterval(load, 3000);
+		// Live watch samples: poll gently so a new workout fills the vial on screen.
+		const t = setInterval(load, persona === ME ? 60000 : 3000);
 		return () => clearInterval(t);
 	});
 
@@ -84,6 +85,7 @@
 		{#if low}<p class="charge-line">{COPY.chargeSetBy} <strong>{COPY.batteries[low.id as BatteryId].label}</strong>
 			<span class="muted">({COPY.bands[low.band.key as keyof typeof COPY.bands]})</span>.</p>{/if}
 		<p class="lede">{COPY.noStreak}</p>
+		{#if data.window?.days_left}<p class="muted">{COPY.resets} {data.window.days_left} {data.window.days_left === 1 ? COPY.dayLeft : COPY.daysLeft}.</p>{/if}
 		<Speak text={sayAll} />
 	</section>
 

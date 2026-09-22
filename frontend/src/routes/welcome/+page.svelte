@@ -1,43 +1,68 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getPersona } from '$lib/api';
+	import { goto } from '$app/navigation';
+	import { pb, accountsEnabled, setDemo, signedIn } from '$lib/auth';
 	import { COPY } from '$lib/copy';
 	import Speak from '$lib/Speak.svelte';
-	import Icon from '$lib/Icon.svelte';
 
-	// Simulated on purpose: nothing is sent, no password is ever asked for.
-	type State = { account?: string; wearable?: string };
-	const ACCOUNTS: Record<string, string> = { bupa: 'Bupa', google: 'Google', email: 'email' };
-	const WEARABLES = [
-		{ id: 'apple', name: 'Apple Watch', mark: '⌚' },
-		{ id: 'fitbit', name: 'Fitbit', mark: '◆' },
-		{ id: 'garmin', name: 'Garmin', mark: '▲' },
-		{ id: 'wearos', name: 'Google (Wear OS)', mark: '●' }
-	];
-
-	let persona = $state('margaret');
-	let st = $state<State>({});
-	let busy = $state<string | null>(null);
-	let showEmail = $state(false);
+	let mode = $state<'in' | 'up'>('up');
 	let email = $state('');
+	let password = $state('');
+	let name = $state('');
+	let busy = $state(false);
+	let err = $state('');
+	let info = $state('');
+	let providers = $state<string[]>([]);
+	const enabled = accountsEnabled();
 
-	const key = () => `onboard:${persona}`;
-	onMount(() => {
-		persona = getPersona();
-		try { st = JSON.parse(localStorage.getItem(key()) ?? '{}'); } catch {}
+	onMount(async () => {
+		if (signedIn()) return goto('/');
+		if (!enabled) return;
+		try {
+			const m = await pb.collection('users').listAuthMethods();
+			providers = (m.oauth2?.enabled ? m.oauth2.providers : []).map((p: any) => p.name);
+		} catch {}
 	});
-	function save() { try { localStorage.setItem(key(), JSON.stringify(st)); } catch {} }
 
-	function fake(what: string, done: () => void) {
-		busy = what;
-		setTimeout(() => { done(); busy = null; save(); }, 1200);
+	async function submit(e: Event) {
+		e.preventDefault();
+		busy = true; err = ''; info = '';
+		try {
+			if (mode === 'up') {
+				await pb.collection('users').create({ email, password, passwordConfirm: password, name, emailVisibility: false });
+				try { await pb.collection('users').requestVerification(email); } catch {}
+			}
+			await pb.collection('users').authWithPassword(email, password);
+			setDemo(false);
+			await goto('/start');
+		} catch (e: any) {
+			err = mode === 'in' ? COPY.welcome.badLogin
+				: e?.response?.data?.email?.message ?? e?.response?.data?.password?.message ?? COPY.welcome.failed;
+		}
+		busy = false;
 	}
-	const signIn = (how: string) => fake(how, () => (st = { ...st, account: how }));
-	const connect = (id: string) => fake(id, () => (st = { ...st, wearable: id }));
-	function reset() { st = {}; showEmail = false; email = ''; save(); }
 
-	const wearableName = $derived(WEARABLES.find((w) => w.id === st.wearable)?.name);
-	const sayAll = $derived(`${COPY.welcome.title}. ${COPY.welcome.intro}`);
+	async function oauth(provider: string) {
+		busy = true; err = '';
+		try {
+			await pb.collection('users').authWithOAuth2({ provider });
+			setDemo(false);
+			await goto('/start');
+		} catch { err = COPY.welcome.failed; }
+		busy = false;
+	}
+
+	async function forgot() {
+		if (!email.includes('@')) { err = COPY.welcome.emailLabel; return; }
+		try { await pb.collection('users').requestPasswordReset(email); } catch {}
+		info = COPY.welcome.resetSent;
+	}
+
+	function demo() {
+		setDemo(true);
+		location.href = '/';
+	}
+	const sayAll = `${COPY.welcome.title}. ${COPY.welcome.intro}`;
 </script>
 
 <section class="hero">
@@ -46,53 +71,45 @@
 	<Speak text={sayAll} />
 </section>
 
-<section class="card onboard-step" class:done-step={st.account}>
-	<h2>{COPY.welcome.step1}</h2>
-	{#if st.account}
-		<p class="done" role="status">✓ {COPY.welcome.signedIn} {COPY.welcome.signedInWith} {ACCOUNTS[st.account]}.</p>
-	{:else if busy && busy in ACCOUNTS}
-		<p class="loading" aria-live="polite">{COPY.welcome.signingIn}</p>
-	{:else}
-		<button class="primary sso sso-bupa" onclick={() => signIn('bupa')}><span class="sso-mark" aria-hidden="true">B</span>{COPY.welcome.bupa}</button>
-		<button class="secondary sso" onclick={() => signIn('google')}><span class="sso-mark" aria-hidden="true">G</span>{COPY.welcome.google}</button>
-		{#if showEmail}
-			<form class="email-form" onsubmit={(e) => { e.preventDefault(); if (email.includes('@')) signIn('email'); }}>
-				<label class="field">{COPY.welcome.emailLabel}<input type="email" required autocomplete="email" bind:value={email} /></label>
-				<button class="secondary" type="submit">{COPY.welcome.emailGo}</button>
-			</form>
-		{:else}
-			<button class="secondary sso" onclick={() => (showEmail = true)}><span class="sso-mark" aria-hidden="true">@</span>{COPY.welcome.email}</button>
-		{/if}
-	{/if}
-</section>
-
-<section class="card onboard-step" class:done-step={st.wearable} class:locked={!st.account}>
-	<h2>{COPY.welcome.step2}</h2>
-	{#if st.wearable}
-		<p class="done" role="status">✓ {wearableName}: {COPY.welcome.connected} {COPY.welcome.found}</p>
-	{:else if !st.account}
-		<p class="muted">{COPY.welcome.step2Intro}</p>
-	{:else}
-		<p class="muted">{COPY.welcome.step2Intro}</p>
-		<div class="wear-grid">
-			{#each WEARABLES as w}
-				<button class="equip-btn" disabled={!!busy} onclick={() => connect(w.id)}>
-					<span class="wear-mark" aria-hidden="true">{w.mark}</span>
-					<span>{w.name}</span>
-					<span class="muted small">{busy === w.id ? COPY.welcome.connecting : COPY.welcome.connect}</span>
-				</button>
-			{/each}
+{#if enabled}
+	<section class="card">
+		<div class="auth-tabs" role="group">
+			<button class="secondary" aria-pressed={mode === 'up'} onclick={() => (mode = 'up')}>{COPY.welcome.signUp}</button>
+			<button class="secondary" aria-pressed={mode === 'in'} onclick={() => (mode = 'in')}>{COPY.welcome.signIn}</button>
 		</div>
-	{/if}
-</section>
 
-{#if st.account && st.wearable}
-	<section class="card onboard-step done-step">
-		<h2>{COPY.welcome.step3}</h2>
-		<a class="secondary link-btn" href="/user"><Icon name="home" size={22} /> {COPY.welcome.kit}</a>
-		<a class="primary" href="/">{COPY.welcome.go}</a>
+		{#each providers.filter((p) => p === 'google' || p === 'apple') as p}
+			<button class="secondary sso" disabled={busy} onclick={() => oauth(p)}>
+				<span class="sso-mark" aria-hidden="true">{p === 'google' ? 'G' : ''}</span>
+				{p === 'google' ? COPY.welcome.google : COPY.welcome.apple}
+			</button>
+		{/each}
+		{#if providers.length}<p class="or">{COPY.welcome.or}</p>{/if}
+
+		<form class="stack" onsubmit={submit}>
+			{#if mode === 'up'}
+				<label class="field">{COPY.welcome.nameLabel}<input autocomplete="given-name" maxlength="80" bind:value={name} /></label>
+			{/if}
+			<label class="field">{COPY.welcome.emailLabel}<input type="email" required autocomplete="email" bind:value={email} /></label>
+			<label class="field">{COPY.welcome.passwordLabel}
+				<input type="password" required minlength={mode === 'up' ? 10 : 1}
+					autocomplete={mode === 'up' ? 'new-password' : 'current-password'} bind:value={password} />
+			</label>
+			{#if mode === 'up'}<p class="muted small">{COPY.welcome.passwordHint}</p>{/if}
+			{#if err}<p class="error" role="alert">{err}</p>{/if}
+			{#if info}<p class="done" role="status">{info}</p>{/if}
+			<button class="primary" type="submit" disabled={busy}>
+				{busy ? COPY.welcome.working : mode === 'up' ? COPY.welcome.create : COPY.welcome.go}
+			</button>
+		</form>
+		{#if mode === 'in'}<p class="hint"><button class="link" onclick={forgot}>{COPY.welcome.forgot}</button></p>{/if}
+		<p class="muted small">{COPY.welcome.bupaNote}</p>
 	</section>
 {/if}
 
-<p class="hint"><button class="link" onclick={reset}>{COPY.welcome.startOver}</button></p>
-<p class="muted small center">{COPY.welcome.demoNote}</p>
+<section class="card">
+	<button class="secondary" onclick={demo}>{COPY.welcome.demo}</button>
+	<p class="muted small center">{COPY.welcome.demoNote}</p>
+</section>
+
+<p class="hint"><a href="/privacy">{COPY.welcome.privacy}</a></p>

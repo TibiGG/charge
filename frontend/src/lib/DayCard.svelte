@@ -8,13 +8,14 @@
 
 	// One daypart. Only the live one is full-colour with an action; the others are dimmed
 	// previews that open up so you can read the plan, but never get a button.
-	let { card, overridden = false, whyOpen = false, taste = {}, onoverride, onvote }: {
+	let { card, overridden = false, whyOpen = false, taste = {}, onoverride, onvote, onskip }: {
 		card: any;
 		overridden?: boolean;
 		whyOpen?: boolean;
 		taste?: Taste;
 		onoverride: (on: boolean) => void;
 		onvote: (kind: string, v: Vote | null) => void;
+		onskip?: (id: string) => void;
 	} = $props();
 
 	let added = $state(false);
@@ -92,6 +93,11 @@
 		<button class="chip vote" aria-pressed={vote === 'less'} onclick={() => onvote(act.id, vote === 'less' ? null : 'less')}>
 			<span aria-hidden="true">▼</span> {COPY.day.lessLike}
 		</button>
+		{#if onskip && card.status !== 'past'}
+			<button class="chip vote" title={COPY.today.somethingElse} onclick={() => onskip(act.id)}>
+				<span aria-hidden="true">↻</span> {COPY.today.somethingElse}
+			</button>
+		{/if}
 	</div>
 
 	{#if card.confidence?.sentence}

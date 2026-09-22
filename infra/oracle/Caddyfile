@@ -1,0 +1,16 @@
+{$API_HOST} {
+	encode gzip
+	request_body {
+		max_size 2GB
+	}
+	reverse_proxy api:8080 {
+		transport http {
+			read_timeout 10m
+		}
+	}
+}
+
+{$PB_HOST} {
+	encode gzip
+	reverse_proxy pocketbase:8090
+}

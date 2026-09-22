@@ -172,7 +172,7 @@ def profile(pid: str):
 @app.get("/api/today/{pid}")
 def today(pid: str, at: str | None = None, equipment: str | None = None, override_sleep: bool = False,
           more: str = "", less: str = "", kit: str | None = None, age: int | None = None,
-          habits: str | None = None, logs: str | None = None, synced: bool = False):
+          habits: str | None = None, logs: str | None = None, synced: bool = False, skip: str = ""):
     """Three daypart cards. `at` = the viewer's local HH:MM (the demo can pin it).
     `more` / `less` = comma-separated activity ids the person voted on (stored in their browser)."""
     p = _persona_or_404(pid)
@@ -195,7 +195,8 @@ def today(pid: str, at: str | None = None, equipment: str | None = None, overrid
     if logs or synced:  # their own logs + watch sync change the batteries, so the plan too
         over["workouts"] = _persona_with(pid, logs, synced)["workouts"]
     return plan_day_with_timeout(pid, at=at, tier=equipment, override_sleep=override_sleep, taste=taste,
-                                 kit=_parse_kit(kit), persona_overrides=over)
+                                 kit=_parse_kit(kit), persona_overrides=over,
+                                 skip={k for k in skip.split(",") if k in ids})
 
 
 class RecommendIn(BaseModel):

@@ -4,7 +4,10 @@
 export const COPY = {
 	appName: 'Charge',
 	tagline: 'Your charge is set by your emptiest battery.',
-	noStreak: "There's no streak to break here. Each battery looks at the last 7 days.",
+	noStreak: "There's no streak to break here. Your batteries start again from empty each Monday.",
+	resets: 'Your batteries empty on Monday.',
+	daysLeft: 'days left this week',
+	dayLeft: 'day left this week',
 	primaryToday: 'What should I do today?',
 	chargeLabel: 'Your charge',
 	chargeSetBy: 'Right now, your charge is set by',
@@ -73,7 +76,11 @@ export const COPY = {
 		loading: 'Working out your one thing…',
 		noWatch: 'Connect your watch first. Then we can suggest one thing for you.',
 		productChoice: 'Why a version of something you already do?',
-		back: 'Back to my batteries'
+		back: 'Back to my batteries',
+		somethingElse: 'Something else',
+		somethingElseHint: "Not feeling it? We'll pick the next best idea.",
+		skipped: "Okay. Here's another idea. We won't show that one again today.",
+		undoSkip: 'Bring back the ones I skipped'
 	},
 
 	ask: {
@@ -159,27 +166,130 @@ export const COPY = {
 
 	welcome: {
 		title: 'Welcome to Charge',
-		intro: 'Two quick steps. Then we can suggest one thing for each part of your day.',
-		step1: 'Step 1: Your account',
-		bupa: 'Sign in with Bupa',
+		intro: 'One idea for each part of your day, based on what you really do. Every idea shows its working.',
+		signIn: 'Sign in',
+		signUp: 'Make an account',
+		haveAccount: 'I already have an account',
+		noAccount: "I'm new here",
 		google: 'Continue with Google',
-		email: 'Use my email',
-		emailLabel: 'Your email',
-		emailGo: 'Send me a sign-in link',
-		signingIn: 'Signing you in…',
-		signedIn: "You're in.",
-		signedInWith: 'Signed in with',
-		step2: 'Step 2: Your watch or tracker',
-		step2Intro: 'We use it to fill your batteries. Nothing is shared without your say.',
-		connect: 'Connect',
-		connecting: 'Connecting…',
-		connected: 'Connected.',
-		found: 'We found 14 days of workouts and sleep.',
-		step3: "You're all set",
-		kit: 'Tell us what kit you have',
-		go: 'See my batteries',
-		startOver: 'Start again',
-		demoNote: 'This is a prototype. Sign-in and connecting are simulated. Nothing is sent.'
+		apple: 'Continue with Apple',
+		or: 'or',
+		emailLabel: 'Email',
+		passwordLabel: 'Password',
+		passwordHint: 'At least 10 letters, numbers or symbols.',
+		nameLabel: 'Your first name',
+		go: 'Sign in',
+		create: 'Make my account',
+		working: 'One moment…',
+		forgot: 'I forgot my password',
+		resetSent: 'If that email has an account, we sent a link to reset the password.',
+		checkEmail: 'We sent you an email. Tap the link in it to confirm your address.',
+		badLogin: "That email and password don't match. Please try again.",
+		failed: "That didn't work. Please try again.",
+		demo: 'Just looking? Try the demo',
+		demoNote: 'The demo uses made-up people. Nothing you do there is saved.',
+		bupaNote: 'Have Bupa cover? You can link it to your Charge account later, under You.',
+		privacy: 'How we use your data'
+	},
+
+	start: {
+		title: 'Before we start',
+		consentTitle: 'Your data, your say',
+		consentBody: 'Charge stores your workouts, sleep and what you tell us, so we can fill your batteries and pick ideas. We never sell it. We never show it to anyone else. You can download it or delete it at any time.',
+		consentHealth: 'I agree that Charge can store my workout, sleep and heart rate data.',
+		consentRecs: 'I agree that Charge can use it to suggest things for me to do.',
+		readMore: 'Read how we use your data',
+		agree: 'I agree',
+		aboutTitle: 'About you',
+		aboutBody: 'Your age changes some of our ideas. The rest is up to you.',
+		birthYear: 'Year you were born',
+		adultsOnly: 'Charge is for adults aged 18 and over.',
+		sex: 'Sex (if you like)',
+		sexOptions: { unknown: 'Rather not say', female: 'Female', male: 'Male', other: 'Other' },
+		menopause: 'Menopause (if you like)',
+		menoOptions: { '': 'Rather not say', pre: 'Not yet', peri: 'Going through it', post: 'After menopause' },
+		next: 'Next',
+		watchTitle: 'Connect your Apple Watch',
+		watchBody: 'Bring in your workouts. You can do this now or later.',
+		skip: "I'll do this later",
+		done: 'See my batteries'
+	},
+
+	watch: {
+		title: 'Apple Watch',
+		exportTitle: 'Bring in your past workouts',
+		exportStep1: 'On your iPhone, open the Health app.',
+		exportStep2: 'Tap your picture, then "Export All Health Data".',
+		exportStep3: 'Save the file, then choose it here.',
+		exportButton: 'Choose my Health file',
+		reading: 'Reading your file. Big files can take a few minutes…',
+		saving: 'Saving your workouts…',
+		imported: 'Done. We brought in new workouts:',
+		failed: "We couldn't read that file. Is it the export file from the Health app?",
+		shortcutTitle: 'Keep it up to date by itself',
+		shortcutBody: 'An iPhone Shortcut can send each new workout to Charge. Set it up once and it runs by itself.',
+		makeToken: 'Make my Shortcut key',
+		newToken: 'Make a new key',
+		tokenOnce: 'This is your key. Copy it now. We only show it once.',
+		copy: 'Copy',
+		copied: 'Copied',
+		shortcutSteps: 'How to set up the Shortcut',
+		step1: 'Open the Shortcuts app. Make a new Shortcut.',
+		step2: 'Add "Find Health Samples". Pick Workouts, from the last day.',
+		step3: 'Add "Repeat with Each". Inside it, add "Get Contents of URL".',
+		step4: 'Set the URL below. Set Method to POST. Add a Header: Authorization, with your key.',
+		step5: 'Set Request Body to JSON: type, start and end, from the workout.',
+		step6: 'In Automation, run it each night.',
+		url: 'URL',
+		manual: 'No Apple Watch? You can add what you did by hand.',
+		addByHand: 'Add something by hand'
+	},
+
+	account: {
+		title: 'Your account',
+		email: 'Email',
+		signOut: 'Sign out',
+		bupaTitle: 'Bupa account',
+		bupaBody: 'Link your Bupa account. Then your Bupa care and Charge can work together.',
+		bupaButton: 'Link my Bupa account',
+		bupaSoon: 'Coming soon. We are working with Bupa to make this possible. We will let you know when it is ready.',
+		ok: 'Okay',
+		routineTitle: 'Your day',
+		routineHint: 'We only suggest things when you are free.',
+		dayStart: 'I usually get up at',
+		dayEnd: 'I usually wind down at',
+		busy: 'Times you are busy',
+		busyHint: 'For example, work. We will not suggest things then.',
+		addBusy: 'Add a busy time',
+		days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+		dataTitle: 'Your data',
+		download: 'Download my data',
+		deleteTitle: 'Delete my account',
+		deleteBody: 'This deletes your account and everything in it. It cannot be undone.',
+		deleteConfirm: 'Type DELETE to confirm',
+		deleteButton: 'Delete everything',
+		deleted: 'Your account is gone.'
+	},
+
+	privacy: {
+		title: 'How we use your data',
+		updated: 'Last changed 22 September 2026.',
+		sections: [
+			['What we keep', 'Your email and name. The year you were born. Your workouts, sleep and heart rate, if you send them. What you tell us about your kit, your day and what you like.'],
+			['Why we keep it', 'To fill your batteries and pick ideas for you. That is all. We do not sell it. We do not use it for ads.'],
+			['Our legal basis', 'Health data needs your clear consent. You give it when you make your account. You can take it back at any time by deleting your account.'],
+			['Who can see it', 'Only you. It is stored on our own server in London. The people who run Charge can reach it only to fix problems.'],
+			['How long we keep it', 'Until you delete your account. Then it is gone. We keep a note that you agreed, with no data in it, so we can show we asked.'],
+			['Your rights', 'You can see, download, fix or delete your data. Go to You, then Your data. You can also email us.'],
+			['Bupa', 'Charge is not run by Bupa. We do not share anything with Bupa. If you link your Bupa account in the future, we will ask you first.']
+		],
+		contact: 'Questions? Email us at',
+		back: 'Back'
+	},
+
+	demo: {
+		banner: "You're in the demo. These are made-up people.",
+		exit: 'Leave the demo'
 	},
 
 	activity: {
@@ -219,7 +329,7 @@ export const COPY = {
 
 	user: {
 		title: 'About you',
-		intro: 'This is what we use to pick your ideas. Change anything. It stays on this device.',
+		intro: 'This is what we use to pick your ideas. Change anything.',
 		fineTune: 'Tell us exactly what kit you have',
 		you: 'You',
 		name: 'Name',
@@ -265,7 +375,7 @@ export const COPY = {
 	},
 	genetic: "This nudges your starting point. It doesn't tell you what will happen.",
 	latency: 'Time to answer',
-	nav: { welcome: 'Welcome', home: 'Batteries', today: 'Today', ask: 'Ask', activity: 'Activity', user: 'User' }
+	nav: { welcome: 'Welcome', home: 'Batteries', today: 'Today', ask: 'Ask', activity: 'Activity', user: 'You' }
 } as const;
 
 export type BatteryId = keyof typeof COPY.batteries;
