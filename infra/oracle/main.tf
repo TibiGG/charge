@@ -23,7 +23,8 @@ variable "tenancy_ocid" {
   type = string
 }
 
-# Always Free: up to 4 OCPU / 24 GB across all A1 instances. 2/12 leaves room for another app.
+# Always Free A1. This tenancy allows 2 cores in AD-1 and AD-3 (0 in AD-2); 1 OCPU / 6 GB is
+# enough for Charge and far easier to get when London is short of capacity.
 variable "shape" {
   type    = string
   default = "VM.Standard.A1.Flex"
@@ -31,12 +32,12 @@ variable "shape" {
 
 variable "ocpus" {
   type    = number
-  default = 2
+  default = 1
 }
 
 variable "memory_gbs" {
   type    = number
-  default = 12
+  default = 6
 }
 
 # London has three ADs on some tenancies and one on others; A1 capacity varies by AD.
