@@ -131,6 +131,10 @@ first click); drop it to 0 to stop paying for an idle service.
 **charge-bupa-dev.vercel.app** (`scripts/deploy-dev.sh`), backed by one Oracle Cloud
 Always Free VM running Caddy + the API + PocketBase (`infra/oracle/`).
 
+Where it runs today: the E2.1.Micro VM that used to host ReBind (its public IP; ReBind is paused,
+see `~/REBIND-PAUSED.txt` on the VM). London had no free A1 capacity; `infra/oracle/main.tf` +
+`grab-a1.sh` create a faster A1 VM when there is, and `deploy.sh <new-ip>` moves Charge there.
+
 - **Accounts**: PocketBase (email + password; Google and Apple once their client ids are set).
   Bupa account association sits in *You* as a placeholder until there is a Bupa integration.
 - **Data**: workouts, sleep, votes, skips and consent live in PocketBase
