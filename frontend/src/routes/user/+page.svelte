@@ -1,11 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { api, getPersona, getProfile, setProfile, setEquipment, tierOf, ME, type Kit, type GymWindow } from '$lib/api';
+	import { api, getPersona, getProfile, setProfile, setEquipment, tierOf, ME, type Ask, type Kit, type GymWindow, type Learned } from '$lib/api';
 	import { signOut } from '$lib/auth';
 	import { COPY } from '$lib/copy';
 	import Speak from '$lib/Speak.svelte';
 	import Icon from '$lib/Icon.svelte';
 	import WatchConnect from '$lib/WatchConnect.svelte';
+	import HealthCheck from '$lib/HealthCheck.svelte';
+	import RecoveryKey from '$lib/RecoveryKey.svelte';
+	import SourceChip from '$lib/SourceChip.svelte';
+	import { replaceRecoveryKey } from '$lib/vault';
 
 	// Everything here becomes facts in the logic program (age/1, habit/2, has_item/3,
 	// gym_window/3). Signed in: stored on the server. Demo: kept in this browser.
@@ -46,10 +50,28 @@
 		if (kit.gym && !kit.gym.windows) kit.gym.windows = [];
 	}
 
+	// What Charge picked up from what they do, and the questions it has for them.
+	let asks = $state<Ask[]>([]);
+	let learned = $state<Learned[]>([]);
+	let newKey = $state('');
+	let keyErr = $state('');
+
 	onMount(async () => {
 		persona = getPersona();
 		try { base = await api.profile(persona); fill(base); } catch (e) { err = String(e); }
+		if (persona === ME) {
+			try { ({ ask: asks, learned } = await api.learned()); } catch {}
+		}
 	});
+
+	async function reply(id: string, value: string) {
+		if (value === 'change') return document.getElementById('health')?.scrollIntoView();
+		try { ({ ask: asks, learned } = await api.answer(id, value)); } catch {}
+	}
+	async function makeKey() {
+		keyErr = '';
+		try { newKey = await replaceRecoveryKey(); } catch { keyErr = COPY.welcome.failed; }
+	}
 
 	const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 	const touched = () => (saved = false);
@@ -228,6 +250,34 @@
 		</section>
 	{/if}
 
+	<section class="hero" id="health">
+		<h2>{COPY.health.title}</h2>
+		<p>{COPY.health.intro}</p>
+	</section>
+	<HealthCheck {persona} />
+
+	{#if persona === ME}
+		<section class="card stack" id="learned">
+			<h2>{COPY.learn.title}</h2>
+			<p class="muted">{COPY.learn.intro}</p>
+			{#each asks as q (q.id)}
+				<div class="stack">
+					<p><strong>{q.text}</strong></p>
+					{#if q.note}<p class="muted">{q.note}</p>{/if}
+					{#if q.source}<SourceChip source={q.source} id={q.source_id ?? undefined} />{/if}
+					<div class="votes">
+						{#each q.options as o}<button class="chip vote" onclick={() => reply(q.id, o.value)}>{o.label}</button>{/each}
+					</div>
+				</div>
+			{/each}
+			{#each learned as l (l.id)}
+				<p>{l.text} <button class="link" onclick={() => reply(l.id, 'yes')}>{COPY.learn.undo}</button></p>
+			{:else}
+				{#if !asks.length}<p>{COPY.learn.none}</p>{/if}
+			{/each}
+		</section>
+	{/if}
+
 	{#if saved}<p class="done" role="status">{COPY.user.saved}</p>{/if}
 	{#if alertMsg}<p class="error" role="alert">{alertMsg}</p>{/if}
 	<button class="primary" onclick={save}>{COPY.user.save}</button>
@@ -248,6 +298,18 @@
 			<h2>{COPY.account.title}</h2>
 			<p><strong>{COPY.account.email}:</strong> {base.email}</p>
 			<button class="secondary" onclick={leave}>{COPY.account.signOut}</button>
+		</section>
+
+		<section class="card stack">
+			<h2>{COPY.vault.title}</h2>
+			<p>{COPY.vault.body}</p>
+			{#if newKey}
+				<RecoveryKey value={newKey} ondone={() => (newKey = '')} />
+			{:else}
+				<p class="muted">{COPY.vault.newKeyBody}</p>
+				<button class="secondary" onclick={makeKey}>{COPY.vault.newKey}</button>
+				{#if keyErr}<p class="error" role="alert">{keyErr}</p>{/if}
+			{/if}
 		</section>
 
 		<section class="card stack">

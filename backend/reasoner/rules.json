@@ -5,7 +5,8 @@
   "body": [
    "prs_band(osteoporosis, high)"
   ],
-  "source_id": "src_bupa_genomic"
+  "source_id": "src_bupa_genomic",
+  "genetic": true
  },
  "e_menopause": {
   "kind": "edge",
@@ -21,7 +22,8 @@
   "body": [
    "carries(rs1800012)"
   ],
-  "source_id": "src_genomos_col1a1"
+  "source_id": "src_genomos_col1a1",
+  "genetic": true
  },
  "e_prs_cm": {
   "kind": "edge",
@@ -29,7 +31,8 @@
   "body": [
    "prs_band(cardiometabolic, high)"
   ],
-  "source_id": "src_bupa_genomic"
+  "source_id": "src_bupa_genomic",
+  "genetic": true
  },
  "e_fto": {
   "kind": "edge",
@@ -37,7 +40,8 @@
   "body": [
    "carries(rs9939609)"
   ],
-  "source_id": "src_frayling_fto_2007"
+  "source_id": "src_frayling_fto_2007",
+  "genetic": true
  },
  "r_strength_who": {
   "kind": "recommend",
@@ -222,5 +226,43 @@
   ],
   "source_id": null,
   "design_note": "A little variety keeps things fresh. It is a product choice, not a health claim."
+ },
+ "e_dx_bone": {
+  "kind": "edge",
+  "head": "You told us a doctor found your bones are thinner than usual.",
+  "body": [
+   "diagnosed(low_bone_density)"
+  ],
+  "source_id": "src_ros_strong_steady_straight"
+ },
+ "r_balance_fall_hx": {
+  "kind": "recommend",
+  "action": "balance_work",
+  "head": "You told us you had a fall this year. Balance work helps you stay steady on your feet.",
+  "body": [
+   "under_target(balance)",
+   "fell_recently"
+  ],
+  "source_id": "src_world_falls_2022"
+ },
+ "r_cardio_chronic": {
+  "kind": "recommend",
+  "action": "brisk_cardio",
+  "head": "With high blood pressure or type 2 diabetes, regular brisk walks are one of the best things to do.",
+  "body": [
+   "under_target(cardio)",
+   "diagnosed(cardiometabolic)"
+  ],
+  "source_id": "src_who_2020_chronic"
+ },
+ "r_strength_chronic": {
+  "kind": "recommend",
+  "action": "strength_training",
+  "head": "With high blood pressure or type 2 diabetes, muscle work twice a week is advised too.",
+  "body": [
+   "under_target(strength)",
+   "diagnosed(cardiometabolic)"
+  ],
+  "source_id": "src_who_2020_chronic"
  }
 }

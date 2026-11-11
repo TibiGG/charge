@@ -31,6 +31,8 @@ has_item(nobody, none, none).
 gym_window(nobody, 0, 0).
 slot_start_min(none, 0).
 recently_suggested(none).
+diagnosed(nobody, none).
+fell_recently(nobody).
 
 % ===== 2. GENOMIC REPORT (probabilistic: the probability IS the uncertainty) =====
 % p = modest, calibrated confidence that this marker meaningfully shifts THIS
@@ -40,6 +42,8 @@ recently_suggested(none).
 0.30::marker_shifts(P, bone_fragility, e_col1a1)    :- carries(P, rs1800012).
 0.40::marker_shifts(P, cardiometabolic, e_prs_cm)   :- prs_band(P, cardiometabolic, high).
 0.35::marker_shifts(P, cardiometabolic, e_fto)      :- carries(P, rs9939609).
+% From the Health check (kept on their device): a doctor's finding is firmer than a gene band.
+0.90::marker_shifts(P, bone_fragility, e_dx_bone)   :- diagnosed(P, low_bone_density).
 
 shifted(P, X) :- marker_shifts(P, X, _).
 
@@ -58,11 +62,18 @@ older_adult(P) :- age(P, A), A >= 65.
     under_target(P, balance), shifted(P, bone_fragility).
 0.80::recommend(P, balance_work, r_balance_older) :-
     under_target(P, balance), older_adult(P).
+0.85::recommend(P, balance_work, r_balance_fall_hx) :-
+    under_target(P, balance), fell_recently(P).
 
 % Cardio endurance
 0.80::recommend(P, brisk_cardio, r_cardio_who) :- under_target(P, cardio).
 0.85::recommend(P, brisk_cardio, r_cardio_fto) :-
     under_target(P, cardio), shifted(P, cardiometabolic).
+% Type 2 diabetes or high blood pressure (Health check): the same aims as everyone, with firmer reasons.
+0.85::recommend(P, brisk_cardio, r_cardio_chronic) :-
+    under_target(P, cardio), diagnosed(P, cardiometabolic).
+0.80::recommend(P, strength_training, r_strength_chronic) :-
+    under_target(P, strength), diagnosed(P, cardiometabolic).
 
 % HIIT / VO2max — WHO treats vigorous minutes as an alternative route to the
 % aerobic target, so only suggest it when that target is not already met.

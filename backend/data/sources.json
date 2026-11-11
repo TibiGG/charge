@@ -115,5 +115,53 @@
   "certainty": "mixed",
   "doi": "10.1007/s40279-018-1015-0",
   "pmid": "30374942"
+ },
+ "src_acsm_2015_screening": {
+  "title": "Updating ACSM's Recommendations for Exercise Preparticipation Health Screening",
+  "publisher": "American College of Sports Medicine (Medicine & Science in Sports & Exercise)",
+  "year": 2015,
+  "url": "https://doi.org/10.1249/MSS.0000000000000664",
+  "claim": "People with signs or symptoms of cardiovascular, metabolic or renal disease should seek medical clearance before exercise; people with known disease and no symptoms can usually continue light-to-moderate activity, with clearance advised before vigorous exercise.",
+  "evidence_grade": "clinical_guideline"
+ },
+ "src_parq_plus": {
+  "title": "The Physical Activity Readiness Questionnaire for Everyone (PAR-Q+)",
+  "publisher": "PAR-Q+ Collaboration (Health & Fitness Journal of Canada, 2011)",
+  "year": 2011,
+  "url": "https://eparmedx.com/",
+  "claim": "A short set of yes/no questions identifies people who should talk to a doctor or qualified exercise professional before becoming more physically active.",
+  "evidence_grade": "peer_reviewed"
+ },
+ "src_world_falls_2022": {
+  "title": "World guidelines for falls prevention and management for older adults: a global initiative",
+  "publisher": "World Falls Guidelines Task Force (Age and Ageing)",
+  "year": 2022,
+  "url": "https://doi.org/10.1093/ageing/afac205",
+  "claim": "Older adults who have fallen should be offered exercise programmes that include balance, functional and strength training.",
+  "evidence_grade": "clinical_guideline"
+ },
+ "src_who_2020_chronic": {
+  "title": "WHO Guidelines on Physical Activity and Sedentary Behaviour",
+  "publisher": "World Health Organization",
+  "year": 2020,
+  "url": "https://www.ncbi.nlm.nih.gov/books/NBK566046/",
+  "claim": "Adults living with chronic conditions such as hypertension and type 2 diabetes should do at least 150-300 minutes of moderate aerobic activity and muscle-strengthening activity on 2 or more days a week.",
+  "evidence_grade": "clinical_guideline"
+ },
+ "src_who_2020_pregnancy": {
+  "title": "WHO Guidelines on Physical Activity and Sedentary Behaviour",
+  "publisher": "World Health Organization",
+  "year": 2020,
+  "url": "https://www.ncbi.nlm.nih.gov/books/NBK566046/",
+  "claim": "Pregnant and postpartum women without contraindications should do at least 150 minutes of moderate-intensity aerobic activity a week; women who habitually did vigorous activity before pregnancy can continue it.",
+  "evidence_grade": "clinical_guideline"
+ },
+ "src_nice_ng136": {
+  "title": "Hypertension in adults: diagnosis and management (NG136)",
+  "publisher": "National Institute for Health and Care Excellence (NICE)",
+  "year": 2019,
+  "url": "https://www.nice.org.uk/guidance/ng136",
+  "claim": "An average home blood pressure of 135/85 mmHg or higher is used to confirm high blood pressure.",
+  "evidence_grade": "clinical_guideline"
  }
 }

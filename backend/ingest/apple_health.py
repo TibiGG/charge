@@ -29,6 +29,8 @@ QUANTITIES = {
     f"{HK}AppleStandTime": "stand_min",
 }
 SLEEP = "HKCategoryTypeIdentifierSleepAnalysis"
+FALLEN = f"{HK}NumberOfTimesFallen"  # Apple Watch fall detection
+BP = {f"{HK}BloodPressureSystolic": 0, f"{HK}BloodPressureDiastolic": 1}  # a cuff that writes to Health
 ASLEEP_VALUES = ("HKCategoryValueSleepAnalysisAsleep",)  # prefix match: Asleep, AsleepCore/Deep/REM/Unspecified
 
 
@@ -62,6 +64,8 @@ def parse(src, sample: bool = False, age: int | None = None, max_records: int | 
     daily: dict[str, dict] = defaultdict(lambda: {"steps": 0.0, "exercise_min": 0.0, "sleep_hours": 0.0})
     onset: dict[str, datetime] = {}  # wake day -> earliest time they fell asleep
     latest: dict[str, tuple[datetime, float]] = {}
+    falls: set[str] = set()
+    bp: dict[str, list] = {}  # reading time -> [systolic, diastolic]; the two come as separate records
     dob: date | None = None
     sex = None
     n = 0
@@ -105,6 +109,10 @@ def parse(src, sample: bool = False, age: int | None = None, max_records: int | 
                 elif key in ("vo2max", "resting_hr", "hrv"):
                     if key not in latest or start > latest[key][0]:
                         latest[key] = (start, val)
+            elif typ == FALLEN and float(a.get("value", 0)) > 0:
+                falls.add(a["startDate"][:10])
+            elif typ in BP:
+                bp.setdefault(a["startDate"], [None, None])[BP[typ]] = round(float(a.get("value", 0)))
             elif typ == SLEEP and (a.get("value") or "").startswith(ASLEEP_VALUES):
                 s, e = _dt(a["startDate"]), _dt(a["endDate"])
                 # Attribute sleep to the day you wake up.
@@ -136,6 +144,8 @@ def parse(src, sample: bool = False, age: int | None = None, max_records: int | 
         "vo2max": latest.get("vo2max", (None, None))[1], "resting_hr": latest.get("resting_hr", (None, None))[1],
         "hrv_sdnn": latest.get("hrv", (None, None))[1], "records_read": n,
         "dob": dob.isoformat() if dob else None,
+        "falls": sorted(falls),
+        "bp": sorted([k[:10], s, d] for k, (s, d) in bp.items() if s and d),
     }
 
 

@@ -234,10 +234,51 @@ def latest_consent(uid: str) -> dict | None:
     return rows[0] if rows else None
 
 
+# ---------------------------------------------------------------- sealed vaults (see app.vault)
+
+def vault_of(uid: str, with_box: bool = True) -> dict | None:
+    items = _req("GET", "/api/collections/vaults/records",
+                 params={"filter": mine(uid), "perPage": 1, "skipTotal": 1,
+                         **({} if with_box else {"fields": "id,pk,kdf,wrap_pw,wrap_rk"})}).json()["items"]
+    return items[0] if items else None
+
+
+def create_vault(uid: str, pk_hex: str, box: str, wraps: dict) -> None:
+    create("vaults", {"user": uid, "pk": pk_hex, "box": box, **wraps})
+
+
+def save_vault(rid: str, box: str) -> None:
+    update("vaults", rid, {"box": box})
+
+
+def set_wraps(rid: str, wraps: dict) -> None:
+    update("vaults", rid, wraps)
+
+
+def inbox_of(uid: str) -> list[dict]:
+    return list_all("inbox", mine(uid), sort="created")
+
+
+def wipe_vault(uid: str) -> None:
+    for coll in ("inbox", "vaults"):
+        for row in list_all(coll, mine(uid), fields="id"):
+            delete(coll, row["id"])
+
+
+def legacy(uid: str) -> dict:
+    """What an account stored before vaults: plain rows, read once to seal them, then deleted."""
+    return {c: list_all(c, mine(uid)) for c in ("workouts", "daily", "votes", "day_log")}
+
+
+def drop_legacy(uid: str, rows: dict) -> None:
+    for coll, items in rows.items():
+        for r in items:
+            delete(coll, r["id"])
+
+
 def export_all(uid: str) -> dict:
-    out = {"account": get_user(uid)}
-    for coll in ("workouts", "daily", "votes", "day_log", "consents"):
-        out[coll] = list_all(coll, mine(uid))
+    """The account side. The sealed vault is added by the API, which can open it for them."""
+    out = {"account": get_user(uid), "consents": list_all("consents", mine(uid))}
     out["sync_tokens"] = [{"created": t["created"], "last_used": t.get("last_used")}
                           for t in list_all("sync_tokens", mine(uid))]
     return out

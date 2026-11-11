@@ -195,7 +195,7 @@ export const COPY = {
 	start: {
 		title: 'Before we start',
 		consentTitle: 'Your data, your say',
-		consentBody: 'Charge stores your workouts, sleep and what you tell us, so we can fill your batteries and pick ideas. We never sell it. We never show it to anyone else. You can download it or delete it at any time.',
+		consentBody: 'Charge stores your workouts, sleep and what you tell us. It is locked with a key that only you hold. We use it to fill your batteries and pick ideas. We never sell it. You can download it or delete it at any time.',
 		consentHealth: 'I agree that Charge can store my workout, sleep and heart rate data.',
 		consentRecs: 'I agree that Charge can use it to suggest things for me to do.',
 		readMore: 'Read how we use your data',
@@ -215,6 +215,95 @@ export const COPY = {
 		done: 'See my batteries'
 	},
 
+	health: {
+		title: 'Your health check',
+		intro: 'A few questions, so our ideas are safe and right for you. It takes about a minute.',
+		private: 'We lock this with a key that only you hold. No one at Charge can read it. We use it to pick your ideas.',
+		privateDemo: 'This is the demo, so it stays on this device.',
+		screenTitle: 'Before you get more active',
+		screenHint: 'Tick any that are true for you.',
+		screen: {
+			heart: 'A doctor has said I have a heart problem or high blood pressure.',
+			chest_pain: 'I get pain in my chest, when I rest or when I am active.',
+			dizzy: 'In the last year, I have lost my balance from feeling dizzy, or passed out.',
+			other_condition: 'I have another long-term health problem, like diabetes, or a lung or kidney problem.',
+			medicines: 'I take medicine for a long-term health problem.',
+			joints: 'I have a bone, joint or muscle problem that could get worse if I am more active.',
+			supervised: 'A doctor has said I should only be active with a doctor or nurse there.'
+		},
+		cleared: 'A doctor or nurse has said I can be active.',
+		clearedHint: 'Tick this once they say yes.',
+		moreTitle: 'Anything else?',
+		moreHint: 'This helps us pick the right ideas.',
+		conditions: {
+			thin_bones: 'A doctor has said my bones are thin (osteoporosis or osteopenia).',
+			high_bp: 'I have high blood pressure.',
+			type2_diabetes: 'I have type 2 diabetes.',
+			pregnant: 'I am pregnant.',
+			fall: 'I have had a fall in the last year.'
+		},
+		joints: 'Go easy on my knees and hips. No jumps or hops.',
+		menopause: 'Menopause',
+		reportTitle: 'Got a Bupa genome report?',
+		reportBody: 'If you have a Bupa MY Genomic Health report, copy two results from it. If not, skip this part.',
+		reportAdd: 'Add my report results',
+		bones: 'Your result for thin bones (osteoporosis)',
+		heart: 'Your result for heart and weight health',
+		bands: { '': 'Not in my report', high: 'A higher chance than most people', average: 'About the same as most people', low: 'A lower chance than most people' },
+		genesTitle: 'Gene changes your report lists',
+		genes: { col1a1: 'COL1A1 (linked to bone strength)', fto: 'FTO (linked to body weight)' },
+		save: 'Save my health check',
+		saved: 'Saved.',
+		clear: 'Clear my health check',
+		gone: 'Your health check is gone.',
+		outcome: {
+			ok: 'Thanks. We use this to pick your ideas.',
+			gentle: 'Thanks. Until a doctor or nurse says yes, we only pick gentle or moderate ideas.',
+			check: 'Please talk to your GP or a Bupa nurse before you start anything new. When they say yes, tick it here.'
+		},
+		notDone: "You haven't done your health check yet. It takes a minute and keeps our ideas safe for you.",
+		doIt: 'Do my health check',
+		edit: 'Change my health check',
+		changed: 'Last changed',
+		notAdvice: 'Charge is not medical advice. If you are not sure, ask your GP.',
+		gentle: 'From your health check: we only pick gentle or moderate ideas until a doctor or nurse says yes.',
+		skip: 'Skip for now'
+	},
+
+	vault: {
+		keyTitle: 'Your recovery key',
+		keyBody: 'Your data is locked with a key that only you hold. Not even the people who run Charge can open it.',
+		keyWhen: 'Save this recovery key somewhere safe, like a password manager. You need it if you forget your password, or sign in with Google or Apple on a new device.',
+		keyLost: 'If you lose your password and this key, no one can open your data. Not even us.',
+		copy: 'Copy',
+		copied: 'Copied',
+		saved: 'I have saved it',
+		settingUp: 'Locking your data…',
+		unlockTitle: 'Open your data',
+		unlockBody: 'Your data is locked. Type your recovery key to open it on this device.',
+		unlockLabel: 'Recovery key',
+		unlockGo: 'Open my data',
+		unlockBad: "That key doesn't match. Please check it and try again.",
+		lost: 'I have lost my recovery key',
+		lostBody: 'Without it, no one can open your old data. Not even us. You can start again with an empty account. You sign in the same way as now.',
+		lostConfirm: 'Type START AGAIN to confirm',
+		lostButton: 'Start again',
+		signOut: 'Sign out',
+		title: 'Your lock',
+		body: 'Your data is locked with a key that only you hold. Signing out makes this device forget it.',
+		newKey: 'Make a new recovery key',
+		newKeyBody: 'Your old recovery key will stop working.'
+	},
+
+	learn: {
+		title: 'What we have picked up',
+		intro: 'We learn from what you pick and pass on. It can only make ideas gentler, or more like what you like.',
+		none: 'Nothing yet. We learn as you use Charge.',
+		undo: 'Undo',
+		asksTitle: 'A few quick questions',
+		thanks: 'Thanks. We will use that.'
+	},
+
 	watch: {
 		title: 'Apple Watch',
 		exportTitle: 'Bring in your past workouts',
@@ -224,7 +313,7 @@ export const COPY = {
 		exportButton: 'Choose my Health file',
 		reading: 'Reading your file. Big files can take a few minutes…',
 		saving: 'Saving your workouts…',
-		imported: 'Done. We brought in new workouts:',
+		imported: 'Done. Workouts we found:',
 		failed: "We couldn't read that file. Is it the export file from the Health app?",
 		shortcutTitle: 'Keep it up to date by itself',
 		shortcutBody: 'An iPhone Shortcut can send each new workout to Charge. Set it up once and it runs by itself.',
@@ -273,12 +362,15 @@ export const COPY = {
 
 	privacy: {
 		title: 'How we use your data',
-		updated: 'Last changed 22 September 2026.',
+		updated: 'Last changed 11 November 2026.',
 		sections: [
-			['What we keep', 'Your email and name. The year you were born. Your workouts, sleep and heart rate, if you send them. What you tell us about your kit, your day and what you like.'],
+			['What we keep', 'Your email and name, so you can sign in. The rest is locked: the year you were born, your health check, your workouts, sleep and heart rate, your kit, your day and what you like.'],
+			['Who can read it', 'Only you. Your data is locked with a key that only your own devices hold. Each time you use Charge, your device sends the key so we can pick your ideas. We use it for that moment and never save it. The people who run Charge cannot open your data, even with full access to our server.'],
+			['What Charge learns', 'We learn from what you pick, pass on and do. That can make our ideas gentler, or more like what you like. It never adds a health problem or takes away a safety step by itself. If something may have changed, we ask you.'],
+			['Your recovery key', 'If you forget your password, or sign in with Google or Apple on a new device, you need your recovery key. Keep it safe. If you lose both, no one can open your data. Not even us. You can start again with an empty account.'],
 			['Why we keep it', 'To fill your batteries and pick ideas for you. That is all. We do not sell it. We do not use it for ads.'],
 			['Our legal basis', 'Health data needs your clear consent. You give it when you make your account. You can take it back at any time by deleting your account.'],
-			['Who can see it', 'Only you. It is stored on our own server in London. The people who run Charge can reach it only to fix problems.'],
+			['Where it is', 'On our own server in London, locked. Signing out makes this device forget your key.'],
 			['How long we keep it', 'Until you delete your account. Then it is gone. We keep a note that you agreed, with no data in it, so we can show we asked.'],
 			['Your rights', 'You can see, download, fix or delete your data. Go to You, then Your data. You can also email us.'],
 			['Bupa', 'Charge is not run by Bupa. We do not share anything with Bupa. If you link your Bupa account in the future, we will ask you first.']

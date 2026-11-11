@@ -98,7 +98,7 @@ strength work.
 - **p95 latency < 4s** for a full day with proofs (~0.3s locally, ~1.2s on Cloud Run).
 - **Refusals never explain themselves clinically** — that would be a health claim too.
 
-`make test` → 92 tests.
+`make test` → 145 tests (with `PB_BIN` set).
 
 ## Run it
 
@@ -125,24 +125,44 @@ runs a ProbLog smoke test **and** a model smoke test at build time, so a broken 
 instead of the demo. `--min-instances=1` keeps one instance warm (no 10–20s cold start on a judge's
 first click); drop it to 0 to stop paying for an idle service.
 
-## Production (work in progress, branch `production`)
+## Production
 
 `charge-bupa.vercel.app` stays the hackathon demo. The production app deploys to
 **charge-bupa-dev.vercel.app** (`scripts/deploy-dev.sh`), backed by one Oracle Cloud
 Always Free VM running Caddy + the API + PocketBase (`infra/oracle/`).
 
-Where it runs today: the E2.1.Micro VM that used to host ReBind (its public IP; ReBind is paused,
-see `~/REBIND-PAUSED.txt` on the VM). London had no free A1 capacity; `infra/oracle/main.tf` +
+Where it runs today: a small E2.1.Micro VM. London had no free A1 capacity; `infra/oracle/main.tf` +
 `grab-a1.sh` create a faster A1 VM when there is, and `deploy.sh <new-ip>` moves Charge there.
+Pushes to `main` test and deploy both halves (`.github/workflows/deploy.yml`, see below).
 
 - **Accounts**: PocketBase (email + password; Google and Apple once their client ids are set).
   Bupa account association sits in *You* as a placeholder until there is a Bupa integration.
-- **Data**: workouts, sleep, votes, skips and consent live in PocketBase
-  (`pocketbase/pb_migrations`). People can read only their own rows; every write goes through the API.
+- **Data, sealed from us** (`backend/app/vault.py`, `frontend/src/lib/vault.ts`): everything personal
+  (profile, health check, workouts, sleep, votes, plans, what Charge learned) is one box per person,
+  sealed to their public key (X25519 + HKDF + AES-256-GCM). The browser makes and keeps the secret key
+  and sends it in the `X-Charge-Key` header; the API opens the box for that request and never stores
+  or logs the key. Writes made while they're away (Shortcut, Health export) go into a sealed inbox and
+  are folded in on their next visit. A new device gets the key back from copies locked in the browser
+  by their password (PBKDF2, 600k rounds) or by a recovery key shown once at sign-up. PocketBase keeps
+  accounts, consent records and those locked copies, which it can't open
+  (`tests/test_accounts.py::test_vault_is_sealed_from_the_operator`).
 - **Watch**: the Health `export.zip` upload (parsed in the background), plus an iOS Shortcut that
   POSTs workouts to `/api/sync/workouts` with a personal key.
 - **Batteries**: weighted minutes (duration × intensity from effort or heart rate) against weekly
   targets, emptied every Monday in the person's time zone.
+- **Health check** (no Bupa or NHS API is open to third parties, so people tell us themselves):
+  PAR-Q+-style readiness questions, a few conditions (thin bones, high blood pressure, type 2
+  diabetes, pregnancy, a recent fall, sore joints) and, optionally, the bands from a Bupa MY Genomic
+  Health report. Kept in their vault, with a log of what changed and when (`tests/test_health.py`).
+  Chest pain, fainting or "supervised only" → no ideas until a doctor or nurse says yes; any other
+  yes → gentle or moderate ideas only (ACSM 2015 screening). Every line it adds to "Why this?" is sourced.
+- **Learning** (`backend/app/learn.py`, `tests/test_learn.py`): from votes, *Something else*, *Not
+  today*, *Put it in my calendar* and what they actually log, Charge ranks single ideas up or down
+  and can leave out jumps or its hardest ideas. These only ever take ideas away, say so in "Why this?",
+  and can be undone under You. Anything that would add a condition is **asked**, not assumed: a fall
+  the watch noticed, home blood pressure above 135/85 (NICE NG136), a habit they keep up, menopause
+  (women 40–60), and reviews when an answer gets old (a fall after a year, pregnancy, the whole check
+  after six months). Nothing learned lifts a limit from the health check.
 - **Variety**: ideas shown on the last two days rank lower (`p_recent`), and *Something else* skips
   an idea until tomorrow. Both show up in "Why this?".
 
@@ -152,6 +172,21 @@ infra/oracle/deploy.sh                                 # ship / update the backe
 scripts/deploy-dev.sh                                  # ship the web app
 PB_BIN=/path/to/pocketbase make test                   # includes the signed-in journey
 ```
+
+### Continuous deployment
+
+Every push and pull request runs the tests (`.github/workflows/deploy.yml`); a push to `main` then
+deploys. The API job copies `backend/`, `pocketbase/` and `infra/` to the VM and rebuilds the
+containers; the VM keeps its own `.env` (PocketBase superuser login), which CI never sees. The web job
+deploys `frontend/` to Vercel. Each deploy job is skipped, with a note, until its secrets are set:
+
+| Secret | What it is |
+| --- | --- |
+| `DEPLOY_HOST` | The VM's IP address or host name |
+| `DEPLOY_SSH_KEY` | A private key used only by CI; its public half is in `~ubuntu/.ssh/authorized_keys` on the VM |
+| `DEPLOY_KNOWN_HOSTS` | `ssh-keyscan <host>` output, so CI only talks to that VM |
+| `API_URL` | e.g. `https://api.<host>`, checked after each deploy |
+| `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` | A Vercel token, and the ids in `scripts/deploy-dev.sh` |
 
 Secrets live in `~/.config/charge/oracle.env` (made by `deploy.sh`), never in the repo.
 

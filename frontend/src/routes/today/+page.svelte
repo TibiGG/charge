@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { api, getPersona, getEquipment, getNow, getTaste, getProfile, vote as sendVote, skip as sendSkip, getSkips, ME, type Taste, type Vote } from '$lib/api';
 	import { COPY } from '$lib/copy';
 	import Speak from '$lib/Speak.svelte';
 	import Latency from '$lib/Latency.svelte';
 	import DayCard from '$lib/DayCard.svelte';
+	import SourceChip from '$lib/SourceChip.svelte';
+	import { getHealth } from '$lib/health';
 
 	let data = $state<any>(null);
 	let err = $state<number | string>('');
@@ -54,7 +57,26 @@
 		load();
 	}
 
+	// What they did with the live idea: it teaches Charge what they like.
+	function feedback(id: string, signal: 'planned' | 'not_today') {
+		if (getPersona() === ME) api.feedback(id, signal).catch(() => {});
+	}
+
+	// A question in place of a longer form (backend/app/learn.py). One at a time.
+	async function reply(id: string, value: string) {
+		if (value === 'change') return goto('/user#health');
+		try {
+			await api.answer(id, value);
+			said = COPY.learn.thanks;
+			load();
+		} catch { said = COPY.welcome.failed; }
+	}
+
 	const cards = $derived<any[]>(data?.cards ?? []);
+	const check = $derived(data?.health?.check_first);
+	const ask = $derived(data?.ask?.[0]);
+	const noHealth = $derived(typeof window !== 'undefined' && data
+		&& (getPersona() === ME ? !data.health?.done : !getHealth(getPersona())));
 	const liveCard = $derived(cards.find((c) => c.status === 'live'));
 	const lateNight = $derived(data && !liveCard && cards.every((c) => c.status === 'past'));
 	const sayAll = $derived(liveCard?.text?.read_aloud
@@ -77,9 +99,31 @@
 		<Speak text={sayAll} />
 	</section>
 	{#if said}<p class="done" role="status">{said}</p>{/if}
+	{#if check}
+		<aside class="card mixed" aria-label={check.title}>
+			<h2>{check.title}</h2>
+			<p>{check.body}</p>
+			<SourceChip source={check.source} id={check.source_id} />
+			<p><a href="/user#health">{COPY.health.edit}</a></p>
+		</aside>
+	{:else if data.health?.readiness === 'gentle'}
+		<p class="notice">{COPY.health.gentle} <a href="/user#health">{COPY.health.edit}</a></p>
+	{:else if noHealth}
+		<p class="notice">{COPY.health.notDone} <a href="/user#health">{COPY.health.doIt}</a></p>
+	{/if}
+	{#if ask}
+		<aside class="card stack" aria-label={COPY.learn.asksTitle}>
+			<p><strong>{ask.text}</strong></p>
+			{#if ask.note}<p class="muted">{ask.note}</p>{/if}
+			{#if ask.source}<SourceChip source={ask.source} id={ask.source_id} />{/if}
+			<div class="votes">
+				{#each ask.options as o}<button class="chip vote" onclick={() => reply(ask.id, o.value)}>{o.label}</button>{/each}
+			</div>
+		</aside>
+	{/if}
 
 	{#each cards as card (card.daypart)}
-		<DayCard {card} {whyOpen} overridden={overridden && card.status === 'live'} {taste} onoverride={override} onvote={vote} onskip={skip} />
+		<DayCard {card} {whyOpen} overridden={overridden && card.status === 'live'} {taste} onoverride={override} onvote={vote} onskip={skip} onfeedback={feedback} />
 	{/each}
 	{#if skipped.length && getPersona() !== ME}<p class="hint"><button class="link" onclick={unskip}>{COPY.today.undoSkip}</button></p>{/if}
 {/if}

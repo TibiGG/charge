@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { pb, accountsEnabled, setDemo, signedIn } from '$lib/auth';
 	import { COPY } from '$lib/copy';
+	import { afterSignIn } from '$lib/vault';
 	import Speak from '$lib/Speak.svelte';
 
 	let mode = $state<'in' | 'up'>('up');
@@ -34,7 +35,8 @@
 			}
 			await pb.collection('users').authWithPassword(email, password);
 			setDemo(false);
-			await goto('/start');
+			// Their key: made now if they're new, or opened with their password on a new device.
+			await goto((await afterSignIn(password)) === 'locked' ? '/unlock' : '/start');
 		} catch (e: any) {
 			err = mode === 'in' ? COPY.welcome.badLogin
 				: e?.response?.data?.email?.message ?? e?.response?.data?.password?.message ?? COPY.welcome.failed;
@@ -47,7 +49,7 @@
 		try {
 			await pb.collection('users').authWithOAuth2({ provider });
 			setDemo(false);
-			await goto('/start');
+			await goto((await afterSignIn()) === 'locked' ? '/unlock' : '/start');
 		} catch { err = COPY.welcome.failed; }
 		busy = false;
 	}

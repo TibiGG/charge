@@ -66,6 +66,11 @@ def fact_sentence(fact: dict, persona: dict) -> str:
         return f"You are {persona['age']}. The balance aim is for people over 65."
     if kind == "habit":
         return f"You told us you enjoy {HABIT_WORDS.get(fact['habit'], fact['habit'])}."
+    if kind == "diagnosed":
+        return {"cardiometabolic": "You told us you have high blood pressure or type 2 diabetes.",
+                "low_bone_density": "You told us a doctor found your bones are thinner than usual."}.get(fact["what"], "")
+    if kind == "fall":
+        return "You told us you had a fall in the last year."
     return ""
 
 

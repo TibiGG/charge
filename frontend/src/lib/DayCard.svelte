@@ -8,7 +8,7 @@
 
 	// One daypart. Only the live one is full-colour with an action; the others are dimmed
 	// previews that open up so you can read the plan, but never get a button.
-	let { card, overridden = false, whyOpen = false, taste = {}, onoverride, onvote, onskip }: {
+	let { card, overridden = false, whyOpen = false, taste = {}, onoverride, onvote, onskip, onfeedback }: {
 		card: any;
 		overridden?: boolean;
 		whyOpen?: boolean;
@@ -16,6 +16,8 @@
 		onoverride: (on: boolean) => void;
 		onvote: (kind: string, v: Vote | null) => void;
 		onskip?: (id: string) => void;
+		/** What they did with the live idea. Charge learns from it (backend/app/learn.py). */
+		onfeedback?: (id: string, signal: 'planned' | 'not_today') => void;
 	} = $props();
 
 	let added = $state(false);
@@ -42,6 +44,7 @@
 		a.download = 'charge.ics';
 		a.click();
 		added = true;
+		onfeedback?.(shown.id, 'planned');
 	}
 </script>
 
@@ -193,7 +196,7 @@
 			<p class="preview">{card.text?.preview ?? ''}</p>
 		</div>
 	</section>
-{:else if card.state === 'away' || card.state === 'none'}
+{:else if card.state === 'away' || card.state === 'none' || card.state === 'check'}
 	<section class="card daypart live">
 		<p class="eyebrow"><Icon name={dp} size={20} /> {card.label} · {COPY.dayparts.now}</p>
 		<p class="preview">{card.text.preview}</p>
@@ -215,7 +218,7 @@
 			<p class="done" role="status">{COPY.today.notTodayDone}</p>
 		{:else}
 			<button class="primary" onclick={ics}>{COPY.today.addToCalendar}</button>
-			<button class="secondary" onclick={() => (skipped = true)}>{COPY.today.notToday}</button>
+			<button class="secondary" onclick={() => { skipped = true; onfeedback?.(shown.id, 'not_today'); }}>{COPY.today.notToday}</button>
 		{/if}
 	</article>
 

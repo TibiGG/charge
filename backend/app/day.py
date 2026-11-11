@@ -16,6 +16,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutTimeout
 from datetime import date, datetime, timedelta
 
+from app import health as hc
 from app.aggregate import DATA, SOURCES, compute_batteries, load_genome, load_persona
 from app.render import GENETIC_FRAME, QUICK_ANSWER, annotate, confidence_band, fact_sentence
 from app.schedule import (DAYPART_ORDER, away_block, daypart_of, load_calendar, minutes_of, slot_for)
@@ -51,6 +52,50 @@ KIT_PRESETS = {"none": {"home": ["chair"], "gym": None},
 MAX_RULED_OUT = 3  # kit-less candidates also sent to ProbLog, so the chain itself says "missing kit"
 NOISE_TEXT = {"quiet": "Quiet", "some": "A few thuds", "loud": "Loud"}
 HABIT_WORDS = {"yoga": "yoga", "spin": "spin classes", "weights": "weights", "walking": "walking"}
+# The Health check (kept on their device). Readiness gates are hard gates, like kit.
+CHECK_FIRST = {
+    "title": "Please check with someone first",
+    "body": ("You told us something in your health check that a doctor or nurse should look at "
+             "before you start anything new. Talk to your GP, or call a Bupa nurse. "
+             "When they say yes, tick it in your health check and we'll pick ideas for you. "
+             "If you have chest pain right now, call 999."),
+    "source_id": hc.SRC_PARQ,
+}
+
+
+def health_gates(persona: dict) -> tuple[set[str], list[dict]]:
+    """Activity ids the health check rules out, and the lines that say why on every card."""
+    blocked, why = set(), []
+    if persona.get("readiness") == "gentle":
+        blocked |= {a["id"] for a in CATALOG if a["intensity"] == "vigorous"}
+        if persona.get("pregnant"):
+            why.append({"kind": "health", "health_claim": True, "source_id": hc.SRC_PREGNANCY,
+                        "text": "You told us you're pregnant. Until your midwife or doctor says yes to hard "
+                                "effort, we only pick gentle or moderate ideas."})
+        else:
+            why.append({"kind": "health", "health_claim": True, "source_id": hc.SRC_SCREEN,
+                        "text": "You told us something in your health check. Until a doctor or nurse says yes, "
+                                "we only pick gentle or moderate ideas."})
+    elif persona.get("cleared"):
+        why.append({"kind": "health", "health_claim": False, "source_id": None,
+                    "text": "You told us a doctor or nurse said you can be active. Do follow what they told you."})
+    if persona.get("easy_joints"):
+        jumps = {a["id"] for a in CATALOG if a.get("impact")}
+        blocked |= jumps
+        why.append({"kind": "health", "health_claim": False, "source_id": None,
+                    "text": "You asked us to go easy on your joints, so we left out ideas with jumps or hops."})
+    # Learned from what they pass on (app.learn). Preferences only: they can only take ideas away.
+    from app.learn import LINES
+    prefs = persona.get("learned_prefs") or {}
+    if prefs.get("no_jumps") and not persona.get("easy_joints"):
+        blocked |= {a["id"] for a in CATALOG if a.get("impact")}
+        why.append({"kind": "learned", "health_claim": False, "source_id": None, "text": LINES["no_jumps"]})
+    if prefs.get("calmer") and persona.get("readiness") != "gentle":
+        blocked |= {a["id"] for a in CATALOG if a["intensity"] == "vigorous"}
+        why.append({"kind": "learned", "health_claim": False, "source_id": None, "text": LINES["calmer"]})
+    return blocked, why
+
+
 SLEEP_NOTICE = {
     "title": "A gentler option this evening",
     "body": ("Hard exercise late can make it harder to drop off. The research on this is mixed. "
@@ -210,7 +255,10 @@ def _context(c: dict, daypart: str, slot: dict | None, batteries: dict, persona:
         nodes.append({"kind": "habit", "health_claim": False, "source_id": None,
                       "text": f"It builds on your {HABIT_WORDS.get(h, h)}."})
     vote = (taste or {}).get(c["id"])
-    if vote == "more":
+    if c["id"] in (persona.get("learned_taste") or {}):
+        from app.learn import LINES
+        nodes.append({"kind": "learned", "health_claim": False, "source_id": None, "text": LINES[vote]})
+    elif vote == "more":
         nodes.append({"kind": "taste", "health_claim": False, "source_id": None,
                       "text": "You asked for more like this."})
     elif vote == "less":
@@ -254,8 +302,12 @@ def _card(daypart: str, status: str) -> dict:
 def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_sleep: bool = False,
              force_fallback: bool = False, taste: dict[str, str] | None = None,
              kit: dict | None = None, persona_overrides: dict | None = None, persona: dict | None = None,
-             recent: set[str] | None = None, skip: set[str] | None = None) -> dict:
-    """`taste` = {action: "more" | "less"}, the person's own votes.
+             recent: set[str] | None = None, skip: set[str] | None = None,
+             health: hc.HealthIn | None = None, learned: dict | None = None) -> dict:
+    """`taste` = {activity id: "more" | "less"}, the person's own votes.
+    `health` = their health check (from their sealed vault, or the demo's browser).
+    `learned` = app.learn's {prefs, taste}: preferences picked up from what they do. Its taste
+      ranks like a vote but says so differently; an explicit vote always wins.
     `persona` = a signed-in person's record (else the demo persona `pid` is loaded).
     `recent` = activity ids suggested on the last two days (ranked a bit lower, for variety).
     `skip` = activity ids they turned down today with "Something else" (never shown again today)."""
@@ -267,7 +319,14 @@ def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_
         timings[k] = round(timings.get(k, 0) + (now - since) * 1000, 1)
         return now
 
-    persona = {**(persona or load_persona(pid)), **(persona_overrides or {})}
+    persona = hc.apply({**(persona or load_persona(pid)), **(persona_overrides or {})}, health)
+    if learned:
+        implicit = {k: v for k, v in (learned.get("taste") or {}).items() if k in CATALOG_IDS and k not in (taste or {})}
+        persona = {**persona, "learned_prefs": learned.get("prefs") or {}, "learned_taste": implicit}
+        kind_less = kinds_disliked(taste)  # only their own votes teach us about a whole kind
+        taste = {**implicit, **(taste or {})}
+    else:
+        kind_less = kinds_disliked(taste)
     recent = {r for r in (recent or ()) if r in CATALOG_IDS}
     skip = {x for x in (skip or ()) if x in CATALOG_IDS}
     genome = load_genome(persona)
@@ -283,19 +342,23 @@ def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_
     now_dt = datetime.combine(day, datetime.strptime(at, "%H:%M").time())
     live = daypart_of(at)
     bedtime = bedtime_minutes(persona)
-    kind_less = kinds_disliked(taste)
+    blocked, health_why = health_gates(persona)
     t = mark("load_aggregate", t0)
 
     person = engine.person_facts(persona, genome, batteries["metrics"])
     base = engine.evaluate(person) if not force_fallback else {"helps": {}, "rules": {}, "edges": {}}
     t = mark("problog_evidence", t)
 
-    cards, picked = [], set(skip)
+    cards, picked = [], set(skip) | blocked
     live_idx = DAYPART_ORDER.index(live) if live else (3 if minutes_of(at) > minutes_of("22:00") else -1)
     for i, dp in enumerate(DAYPART_ORDER):
         status = "live" if i == live_idx else ("past" if i < live_idx else "later")
         card = _card(dp, status)
         cards.append(card)
+
+        if persona["readiness"] == "check":
+            card.update(state="check", text={"preview": CHECK_FIRST["title"] + "."})
+            continue
 
         away = away_block(cal, day, dp)
         if away:
@@ -421,12 +484,16 @@ def plan_day(pid: str, at: str | None = None, tier: str | None = None, override_
             card["seated_alternative"] = _activity_view(seated, kit) if seated else None
 
     for card in cards:
+        if card.get("activity") and health_why:
+            card["context"] = [*(card.get("context") or []), *health_why]
         ensure_why(card, batteries, persona)
         if card.get("activity") and any(card["daypart"] in a["daypart"] for a in CATALOG if a["id"] in skip):
             card["context"].insert(0, {"kind": "skip", "health_claim": False, "source_id": None,
                                        "text": "You asked for something else, so this is our next best idea."})
     timings["total"] = round((time.perf_counter() - t0) * 1000, 1)
+    check = {**CHECK_FIRST, "source": SOURCES[CHECK_FIRST["source_id"]]} if persona["readiness"] == "check" else None
     return {"persona": {"id": persona["id"], "name": persona["name"]}, "at": at, "live": live,
+            "health": {"readiness": persona["readiness"], "check_first": check},
             "equipment": tier, "kit": kit, "bedtime": _clock(bedtime) if bedtime is not None else None,
             "mode": "quick" if force_fallback else "reasoned", "cards": cards,
             "batteries": batteries, "timings_ms": timings}

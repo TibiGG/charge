@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app import accounts, aggregate, scope_guard
+from app.health import HealthIn, PlanIn
 from app.aggregate import (BATTERY_ORDER, MANUAL_TYPES, SOURCES, WEARABLE_PENDING, TARGETS, compute_batteries, counts_for,
                            load_persona, with_extra)
 from app.day import CATALOG, GYM_DEFAULT, KIT_WORDS, TIERS, plan_day_with_timeout, resolve_kit
@@ -173,8 +174,23 @@ def profile(pid: str):
 def today(pid: str, at: str | None = None, equipment: str | None = None, override_sleep: bool = False,
           more: str = "", less: str = "", kit: str | None = None, age: int | None = None,
           habits: str | None = None, logs: str | None = None, synced: bool = False, skip: str = ""):
+    return _today(pid, at, equipment, override_sleep, more, less, kit, age, habits, logs, synced, skip)
+
+
+@app.post("/api/today/{pid}")
+def today_with_health(pid: str, body: PlanIn, at: str | None = None, equipment: str | None = None,
+                      override_sleep: bool = False, more: str = "", less: str = "", kit: str | None = None,
+                      age: int | None = None, habits: str | None = None, logs: str | None = None,
+                      synced: bool = False, skip: str = ""):
+    return _today(pid, at, equipment, override_sleep, more, less, kit, age, habits, logs, synced, skip, body.health)
+
+
+def _today(pid: str, at: str | None, equipment: str | None, override_sleep: bool, more: str, less: str,
+           kit: str | None, age: int | None, habits: str | None, logs: str | None, synced: bool, skip: str,
+           health: HealthIn | None = None):
     """Three daypart cards. `at` = the viewer's local HH:MM (the demo can pin it).
-    `more` / `less` = comma-separated activity ids the person voted on (stored in their browser)."""
+    `more` / `less` = comma-separated activity ids the person voted on (stored in their browser).
+    `health` = the Health check; only the POST form carries it, in the body, so it never reaches a log."""
     p = _persona_or_404(pid)
     if not p["watch_connected"]:
         raise HTTPException(409, "no watch connected")
@@ -196,7 +212,7 @@ def today(pid: str, at: str | None = None, equipment: str | None = None, overrid
         over["workouts"] = _persona_with(pid, logs, synced)["workouts"]
     return plan_day_with_timeout(pid, at=at, tier=equipment, override_sleep=override_sleep, taste=taste,
                                  kit=_parse_kit(kit), persona_overrides=over,
-                                 skip={k for k in skip.split(",") if k in ids})
+                                 skip={k for k in skip.split(",") if k in ids}, health=health)
 
 
 class RecommendIn(BaseModel):

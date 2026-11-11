@@ -15,7 +15,11 @@ export function token(): string {
 	return pb.authStore.token;
 }
 
+/** Signing out also makes this device forget their key (see vault.ts): a shared computer
+ * keeps nothing. They get it back with their password, or their recovery key. */
 export function signOut() {
+	const id = pb.authStore.record?.id;
+	try { if (id) localStorage.removeItem(`vault:${id}`); } catch {}
 	pb.authStore.clear();
 	setDemo(false);
 }

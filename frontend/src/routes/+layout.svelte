@@ -31,10 +31,12 @@
 			if (!ready) await goto('/welcome', { replaceState: true }).then(() => (ready = true));
 			return;
 		}
-		if (path !== '/start' && !PUBLIC.includes(path)) {
+		if (path !== '/unlock' && !PUBLIC.includes(path)) {
 			try {
 				const me = await api.me();
-				if (!me.consent || !me.profile_ready) {
+				if (me.vault !== 'open') {
+					await goto('/unlock', { replaceState: true }); // this device doesn't hold their key
+				} else if (path !== '/start' && (!me.consent || !me.profile_ready)) {
 					await goto('/start', { replaceState: true });
 				}
 			} catch (e: any) {
@@ -60,7 +62,7 @@
 		setDemo(false);
 		location.href = '/welcome';
 	}
-	const bare = $derived(!demo && (PUBLIC.includes(page.url.pathname) || page.url.pathname === '/start'));
+	const bare = $derived(!demo && (PUBLIC.includes(page.url.pathname) || ['/start', '/unlock'].includes(page.url.pathname)));
 </script>
 
 <svelte:head><title>{COPY.appName}</title></svelte:head>

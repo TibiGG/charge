@@ -1,5 +1,7 @@
 import { env } from '$env/dynamic/public';
 import { isDemo, signedIn, token } from './auth';
+import { getHealth, type Health } from './health';
+import { localKey } from './vault';
 
 // Empty locally: Vite proxies /api to :8000. Deployed: the API's own URL.
 const BASE = (env.PUBLIC_API_BASE ?? '').replace(/\/$/, '');
@@ -12,8 +14,16 @@ export type Timed<T> = T & { clientMs: number };
 async function timed<T>(path: string, init: RequestInit = {}): Promise<Timed<T>> {
 	const t = performance.now();
 	const headers = new Headers(init.headers);
-	if (path.startsWith('/api/me')) headers.set('Authorization', token());
+	if (path.startsWith('/api/me')) {
+		headers.set('Authorization', token());
+		// Their key opens their sealed vault for this one request. Header only: never a URL.
+		const k = localKey();
+		if (k) headers.set('X-Charge-Key', k);
+	}
 	const res = await fetch(`${BASE}${path}`, { ...init, headers });
+	if (res.status === 423 && typeof location !== 'undefined' && location.pathname !== '/unlock') {
+		location.href = '/unlock';
+	}
 	if (!res.ok) {
 		let detail = '';
 		try { detail = (await res.json()).detail ?? ''; } catch {}
@@ -41,7 +51,7 @@ function pinnedAt(): string | null {
 export const api = {
 	personas: () => timed<any>('/api/personas'),
 	batteries: (p: string, extraLogs: ActivityLog[] = []) => p === ME
-		? timed<any>(`/api/me/batteries${extraLogs.length ? `?logs=${encodeURIComponent(JSON.stringify(extraLogs))}` : ''}`)
+		? timed<any>('/api/me/batteries', extraLogs.length ? json('POST', { logs: extraLogs }) : {})
 		: timed<any>(`/api/batteries/${p}?${activityQs(p, extraLogs)}`),
 	activity: (p: string) => timed<any>(p === ME ? '/api/me/activity' : `/api/activity/${p}?${activityQs(p)}`),
 	profile: (p: string) => timed<any>(p === ME ? '/api/me/profile' : `/api/profile/${p}`),
@@ -51,7 +61,7 @@ export const api = {
 			const at = pinnedAt();
 			if (at) qs.set('at', at);
 			if (q.override_sleep) qs.set('override_sleep', 'true');
-			return timed<any>(`/api/me/today?${qs}`);
+			return timed<any>(`/api/me/today?${qs}`); // their health check is in their vault
 		}
 		const qs = new URLSearchParams();
 		const skipped = getSkips(p);
@@ -66,7 +76,8 @@ export const api = {
 		if (q.profile?.age) qs.set('age', String(q.profile.age));
 		if (q.profile?.habits) qs.set('habits', q.profile.habits.join(','));
 		for (const [k, v] of activityQs(p)) qs.set(k, v);
-		return timed<any>(`/api/today/${p}?${qs}`);
+		// The demo's health check goes in the body, never the URL: URLs end up in logs.
+		return timed<any>(`/api/today/${p}?${qs}`, json('POST', { health: getHealth(p) }));
 	},
 	sources: () => timed<any>('/api/sources'),
 	ask: (text: string, persona: string) =>
@@ -93,9 +104,21 @@ export const api = {
 	importStatus: (job: string) => timed<any>(`/api/me/import/${job}`),
 	syncToken: () => timed<any>('/api/me/sync-token', { method: 'POST' }),
 	exportData: () => timed<any>('/api/me/export'),
+	health: () => timed<{ health: Health | null }>('/api/me/health'),
+	saveHealth: (health: Health | null) => timed<any>('/api/me/health', json('PUT', { health })),
+	learned: () => timed<{ ask: Ask[]; learned: Learned[] }>('/api/me/learned'),
+	answer: (id: string, value: string) => timed<{ ask: Ask[]; learned: Learned[] }>('/api/me/answers', json('POST', { id, value })),
+	feedback: (activity_id: string, signal: 'planned' | 'not_today') =>
+		timed<any>('/api/me/feedback', json('POST', { activity_id, signal })),
 	deleteAccount: () => timed<any>('/api/me', { method: 'DELETE' }),
 	syncUrl: () => `${BASE || location.origin}/api/sync/workouts`
 };
+
+/** A question Charge asks in place of a longer form (backend/app/learn.py). */
+export type Ask = { id: string; text: string; options: { value: string; label: string }[];
+	source_id: string | null; source: any; note: string | null };
+/** Something Charge picked up from what they do. Undo = answer(id, 'yes'). */
+export type Learned = { id: string; text: string };
 
 // ---- Writes: a signed-in person's go to the server; the demo's stay in this browser. ----
 

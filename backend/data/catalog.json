@@ -32,7 +32,8 @@
    ],
    "reviewed": true,
    "clinical_review": "pending",
-   "needs": []
+   "needs": [],
+   "impact": true
   },
   {
    "id": "yoga_heel_drops",
@@ -73,7 +74,8 @@
    "clinical_review": "pending",
    "needs": [
     "mat"
-   ]
+   ],
+   "impact": true
   },
   {
    "id": "ros_dance",
@@ -109,7 +111,8 @@
    ],
    "reviewed": true,
    "clinical_review": "pending",
-   "needs": []
+   "needs": [],
+   "impact": true
   },
   {
    "id": "chair_squats",
@@ -147,7 +150,8 @@
    "clinical_review": "pending",
    "needs": [
     "chair"
-   ]
+   ],
+   "impact": false
   },
   {
    "id": "ros_strength_balance",
@@ -183,7 +187,8 @@
    "clinical_review": "pending",
    "needs": [
     "chair"
-   ]
+   ],
+   "impact": false
   },
   {
    "id": "chair_workout",
@@ -219,7 +224,8 @@
    "clinical_review": "pending",
    "needs": [
     "chair"
-   ]
+   ],
+   "impact": false
   },
   {
    "id": "nia_strength",
@@ -253,7 +259,8 @@
    "clinical_review": "pending",
    "needs": [
     "dumbbells"
-   ]
+   ],
+   "impact": false
   },
   {
    "id": "dumbbells",
@@ -287,7 +294,8 @@
    "clinical_review": "pending",
    "needs": [
     "dumbbells"
-   ]
+   ],
+   "impact": false
   },
   {
    "id": "gym_machines",
@@ -319,7 +327,8 @@
    "clinical_review": "pending",
    "needs": [
     "machines"
-   ]
+   ],
+   "impact": false
   },
   {
    "id": "one_leg",
@@ -355,7 +364,8 @@
    ],
    "reviewed": true,
    "clinical_review": "pending",
-   "needs": []
+   "needs": [],
+   "impact": false
   },
   {
    "id": "balance_basics",
@@ -388,7 +398,8 @@
    "steps": [],
    "reviewed": true,
    "clinical_review": "pending",
-   "needs": []
+   "needs": [],
+   "impact": false
   },
   {
    "id": "tai_chi",
@@ -421,7 +432,8 @@
    "steps": [],
    "reviewed": true,
    "clinical_review": "pending",
-   "needs": []
+   "needs": [],
+   "impact": false
   },
   {
    "id": "tai_chi_long",
@@ -454,7 +466,8 @@
    "steps": [],
    "reviewed": true,
    "clinical_review": "pending",
-   "needs": []
+   "needs": [],
+   "impact": false
   },
   {
    "id": "balance_walk",
@@ -491,7 +504,8 @@
    ],
    "reviewed": true,
    "clinical_review": "pending",
-   "needs": []
+   "needs": [],
+   "impact": false
   },
   {
    "id": "brisk_walk",
@@ -524,7 +538,8 @@
    ],
    "reviewed": true,
    "clinical_review": "pending",
-   "needs": []
+   "needs": [],
+   "impact": false
   },
   {
    "id": "walk_bursts",
@@ -558,7 +573,8 @@
    ],
    "reviewed": true,
    "clinical_review": "pending",
-   "needs": []
+   "needs": [],
+   "impact": false
   },
   {
    "id": "jw_cardio",
@@ -592,7 +608,8 @@
    "steps": [],
    "reviewed": true,
    "clinical_review": "pending",
-   "needs": []
+   "needs": [],
+   "impact": true
   },
   {
    "id": "jw_strength_cardio",
@@ -628,7 +645,8 @@
    "clinical_review": "pending",
    "needs": [
     "dumbbells"
-   ]
+   ],
+   "impact": true
   },
   {
    "id": "bike_intervals",
@@ -663,7 +681,8 @@
    "clinical_review": "pending",
    "needs": [
     "bike"
-   ]
+   ],
+   "impact": false
   },
   {
    "id": "lift_then_ride",
@@ -695,7 +714,8 @@
    "needs": [
     "machines",
     "bike"
-   ]
+   ],
+   "impact": false
   },
   {
    "id": "swim",
@@ -722,7 +742,8 @@
    "clinical_review": "pending",
    "needs": [
     "pool"
-   ]
+   ],
+   "impact": false
   },
   {
    "id": "desk_yoga",
@@ -756,7 +777,8 @@
    "clinical_review": "pending",
    "needs": [
     "chair"
-   ]
+   ],
+   "impact": false
   },
   {
    "id": "nia_flex",
@@ -790,7 +812,8 @@
    "clinical_review": "pending",
    "needs": [
     "mat"
-   ]
+   ],
+   "impact": false
   },
   {
    "id": "ros_pilates",
@@ -825,7 +848,8 @@
    "clinical_review": "pending",
    "needs": [
     "mat"
-   ]
+   ],
+   "impact": false
   },
   {
    "id": "chair_yoga",
@@ -861,7 +885,8 @@
    "clinical_review": "pending",
    "needs": [
     "chair"
-   ]
+   ],
+   "impact": false
   },
   {
    "id": "chair_stretch",
@@ -895,7 +920,8 @@
    "clinical_review": "pending",
    "needs": [
     "chair"
-   ]
+   ],
+   "impact": false
   }
  ]
 }

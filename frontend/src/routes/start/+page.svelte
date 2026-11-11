@@ -1,33 +1,44 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { api } from '$lib/api';
+	import { api, ME } from '$lib/api';
 	import { COPY } from '$lib/copy';
 	import WatchConnect from '$lib/WatchConnect.svelte';
+	import HealthCheck from '$lib/HealthCheck.svelte';
+	import RecoveryKey from '$lib/RecoveryKey.svelte';
+	import { pending } from '$lib/vault';
 
-	// Three steps for a new account: agree how we use their data, tell us their age, bring in the watch.
+	// Steps for a new account: save their recovery key (if we just made their lock), agree how we
+	// use their data, tell us their age, the health check, bring in the watch.
 	let me = $state<any>(null);
-	let step = $state<'consent' | 'about' | 'watch'>('consent');
+	let step = $state<'key' | 'consent' | 'about' | 'health' | 'watch'>('consent');
+	let recovery = $state('');
 	let health = $state(false);
 	let recs = $state(false);
 	let birthYear = $state<number | null>(null);
 	let sex = $state('unknown');
-	let meno = $state('');
 	let err = $state('');
 	let busy = $state(false);
 	const thisYear = new Date().getFullYear();
 
+	const next = () => (step = !me.consent ? 'consent' : !me.profile_ready ? 'about' : 'watch');
+
 	onMount(async () => {
+		recovery = pending.recovery ?? '';
+		pending.recovery = undefined; // shown once, then only they have it
 		try {
 			me = await api.me();
-			step = !me.consent ? 'consent' : !me.profile_ready ? 'about' : 'watch';
-			if (me.consent && me.profile_ready && me.has_data) goto('/');
+			if (recovery) step = 'key';
+			else {
+				next();
+				if (me.consent && me.profile_ready && me.has_data) goto('/');
+			}
 		} catch { err = COPY.offline; }
 	});
 
 	async function agree() {
 		busy = true; err = '';
-		try { await api.consent(me.consent_version); step = 'about'; } catch { err = COPY.welcome.failed; }
+		try { await api.consent(me.consent_version); me.consent = true; next(); } catch { err = COPY.welcome.failed; }
 		busy = false;
 	}
 
@@ -36,9 +47,8 @@
 		if (!birthYear || thisYear - birthYear < 18 || thisYear - birthYear > 110) { err = COPY.start.adultsOnly; return; }
 		busy = true; err = '';
 		try {
-			await api.saveProfile({ birth_year: birthYear, sex, menopause_status: meno,
-				timezone: Intl.DateTimeFormat().resolvedOptions().timeZone });
-			step = 'watch';
+			await api.saveProfile({ birth_year: birthYear, sex, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone });
+			step = 'health';
 		} catch (e: any) { err = e.detail || COPY.welcome.failed; }
 		busy = false;
 	}
@@ -46,6 +56,9 @@
 
 {#if !me && !err}
 	<p class="loading">…</p>
+{:else if step === 'key'}
+	<section class="hero"><h1>{COPY.start.title}</h1></section>
+	<RecoveryKey value={recovery} ondone={() => { recovery = ''; next(); }} />
 {:else if step === 'consent'}
 	<section class="hero"><h1>{COPY.start.title}</h1></section>
 	<section class="card stack">
@@ -69,16 +82,13 @@
 				{#each Object.entries(COPY.start.sexOptions) as [k, v]}<option value={k}>{v}</option>{/each}
 			</select>
 		</label>
-		{#if sex === 'female'}
-			<label class="field">{COPY.start.menopause}
-				<select bind:value={meno}>
-					{#each Object.entries(COPY.start.menoOptions) as [k, v]}<option value={k}>{v}</option>{/each}
-				</select>
-			</label>
-		{/if}
 		{#if err}<p class="error" role="alert">{err}</p>{/if}
 		<button class="primary" type="submit" disabled={busy}>{COPY.start.next}</button>
 	</form>
+{:else if step === 'health'}
+	<section class="hero"><h1>{COPY.health.title}</h1><p class="lede">{COPY.health.intro}</p></section>
+	<HealthCheck persona={ME} onsaved={() => (step = 'watch')} />
+	<p class="hint"><button class="link" onclick={() => (step = 'watch')}>{COPY.health.skip}</button></p>
 {:else}
 	<section class="hero"><h1>{COPY.start.watchTitle}</h1><p class="lede">{COPY.start.watchBody}</p></section>
 	<WatchConnect />

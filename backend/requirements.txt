@@ -6,3 +6,4 @@ textstat
 pytest
 httpx
 python-multipart
+cryptography

@@ -51,6 +51,10 @@ def person_facts(persona: dict, genome: dict, metrics: dict) -> str:
         lines.append(f"menopause_status({u}, {_atom(persona['menopause_status'])}).")
     for h in persona.get("habits", []):
         lines.append(f"habit({u}, {_atom('walking' if h == 'walk' else h)}).")
+    for d in persona.get("diagnosed", []):  # Health check, kept on their device
+        lines.append(f"diagnosed({u}, {_atom(d)}).")
+    if persona.get("fell_recently"):
+        lines.append(f"fell_recently({u}).")
     for panel in genome.get("panels", []):
         lines.append(f"prs_band({u}, {_atom(panel['condition'])}, {_atom(panel['prs_band'])}).")
         for v in panel.get("variants", []):
@@ -159,6 +163,12 @@ def derivation(action: str, result: dict, batteries: dict) -> dict:
     def edge_nodes(trait: str) -> list:
         return [_node(eid, e["p"]) for eid, e in edges.items() if e["trait"] == trait and e["p"] > 0]
 
+    def shifted_node(trait: str) -> dict:
+        kids = edge_nodes(trait)
+        # The "it's a nudge, not a forecast" frame belongs to gene results, not to menopause or a diagnosis.
+        return {"text": "Together that nudges your starting point.", "source_id": None, "facts": [],
+                "genetic": any(RULES[k["rule_id"]].get("genetic") for k in kids), "children": kids}
+
     def rule_tree(rid: str) -> dict:
         r = result["rules"][rid]
         meta = RULES[rid]
@@ -167,12 +177,12 @@ def derivation(action: str, result: dict, batteries: dict) -> dict:
             m = re.match(r"under_target\((\w+)\)", lit)
             if m:
                 facts.append(_target_fact(m.group(1), batteries))
-            elif lit == "shifted(bone_fragility)":
-                children.append({"text": "Together that nudges your starting point.", "genetic": True,
-                                 "children": edge_nodes("bone_fragility"), "source_id": None, "facts": []})
-            elif lit == "shifted(cardiometabolic)":
-                children.append({"text": "Together that nudges your starting point.", "genetic": True,
-                                 "children": edge_nodes("cardiometabolic"), "source_id": None, "facts": []})
+            elif lit in ("shifted(bone_fragility)", "shifted(cardiometabolic)"):
+                children.append(shifted_node(lit[8:-1]))
+            elif lit.startswith("diagnosed("):
+                facts.append({"kind": "diagnosed", "what": lit[10:-1]})
+            elif lit == "fell_recently":
+                facts.append({"kind": "fall"})
             elif lit == "older_adult":
                 facts.append({"kind": "age"})
             elif lit.startswith("habit("):
@@ -317,7 +327,8 @@ def logic_for(facts: str, query: str, rule_ids: set[str], cand_id: str) -> dict:
             rules.append(c)
     cid = _atom(cand_id)
     keep = ("now_daypart", "deficit", "bedtime_min", "user_override", "has_item", "gym_window", "habit(",
-            "user_taste", "kind_taste", "age(", "observed", "prs_band", "carries", "menopause_status", "target(")
+            "user_taste", "kind_taste", "age(", "observed", "prs_band", "carries", "menopause_status", "target(",
+            "diagnosed", "fell_recently")
     fl = [l for l in facts.splitlines() if l.strip() and (f"({cid}," in l or f"({cid})" in l or f", {cid})" in l
                                                           or l.strip().startswith(keep))]
     return {"query": query, "rules": rules, "facts": fl}
