@@ -21,8 +21,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
           cache: pip
@@ -34,7 +34,7 @@ jobs:
           unzip -q /tmp/pb.zip -d /tmp/pb
           echo "PB_BIN=/tmp/pb/pocketbase" >> "$GITHUB_ENV"
       - run: python -m pytest -q tests
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -61,7 +61,7 @@ jobs:
           if [ -n "$HOST" ] && [ -n "$SSH_KEY" ] && [ -n "$KNOWN_HOSTS" ]; then echo "go=true" >> "$GITHUB_OUTPUT"
           else echo "::notice::API deploy skipped: set DEPLOY_HOST, DEPLOY_SSH_KEY and DEPLOY_KNOWN_HOSTS."; fi
       - if: steps.ready.outputs.go
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - if: steps.ready.outputs.go
         name: SSH key (CI-only, pinned to this VM)
         run: |
@@ -103,9 +103,9 @@ jobs:
           if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then echo "go=true" >> "$GITHUB_OUTPUT"
           else echo "::notice::Web deploy skipped: set VERCEL_TOKEN, VERCEL_ORG_ID and VERCEL_PROJECT_ID."; fi
       - if: steps.ready.outputs.go
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - if: steps.ready.outputs.go
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
       - if: steps.ready.outputs.go
