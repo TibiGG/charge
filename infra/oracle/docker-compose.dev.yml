@@ -1,0 +1,43 @@
+# The dev stack: the `dev` branch's API + PocketBase, with their own data, next to the live one
+# on the same VM. Lives in /opt/charge-dev/; the live Caddy (docker-compose.yml) gives it TLS at
+# api-dev.<host> and pb-dev.<host> over the shared `charge-edge` network.
+# Its .env (a PocketBase superuser login of its own) is made on the VM by the first CI deploy.
+# Service names start with dev- so they never clash with the live `api` on the shared network.
+# Memory is capped so a dev mistake can't starve the live stack on a small VM.
+name: charge-dev
+
+services:
+  dev-pocketbase:
+    build: ../../pocketbase
+    restart: unless-stopped
+    mem_limit: 150m
+    volumes:
+      - pb_data:/pb/pb_data
+    networks:
+      - default
+      - edge
+
+  dev-api:
+    build: ../../backend
+    restart: unless-stopped
+    mem_limit: 400m
+    environment:
+      PORT: "8080"
+      PB_URL: http://dev-pocketbase:8090
+      PB_ADMIN_EMAIL: ${PB_ADMIN_EMAIL}
+      PB_ADMIN_PASSWORD: ${PB_ADMIN_PASSWORD}
+      CHARGE_DEMO_WRITES: "0"
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+    depends_on:
+      - dev-pocketbase
+    networks:
+      - default
+      - edge
+
+networks:
+  edge:
+    external: true
+    name: charge-edge
+
+volumes:
+  pb_data:

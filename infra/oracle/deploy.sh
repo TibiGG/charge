@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Ship the Charge backend to the Oracle VM and (re)start it. Safe to run again.
+# Ship the live Charge backend (this checkout) to the Oracle VM and (re)start it. Safe to run again.
+# CI does the same on every push to main; the dev stack is deployed by CI from the `dev` branch.
 #   infra/oracle/deploy.sh            # IP from `terraform output`
 #   infra/oracle/deploy.sh 1.2.3.4
 # Secrets live in ~/.config/charge/oracle.env (made on first run, chmod 600, never committed).
@@ -25,7 +26,9 @@ fi
 set -a; . "$SECRETS"; set +a
 API_HOST="${API_HOST:-api.$BASE}"
 PB_HOST="${PB_HOST:-pb.$BASE}"
-CORS_ORIGINS="${CORS_ORIGINS:-https://charge-bupa-dev.vercel.app}"
+API_DEV_HOST="${API_DEV_HOST:-api-dev.$BASE}"
+PB_DEV_HOST="${PB_DEV_HOST:-pb-dev.$BASE}"
+CORS_ORIGINS="${CORS_ORIGINS:-https://charge-bupa.vercel.app}"
 
 echo "→ waiting for cloud-init on $IP"
 $SSH 'cloud-init status --wait >/dev/null 2>&1 || true; docker --version'
@@ -35,12 +38,13 @@ rsync -az --delete -e "ssh -i $KEY" \
   --exclude __pycache__ --exclude .pytest_cache --exclude pb_data --exclude '.terraform*' --exclude '*.tfstate*' \
   --exclude terraform.tfvars --exclude plan.out \
   "$ROOT/backend" "$ROOT/pocketbase" "$ROOT/infra" "ubuntu@$IP:/opt/charge/"
-printf 'PB_ADMIN_EMAIL=%s\nPB_ADMIN_PASSWORD=%s\nAPI_HOST=%s\nPB_HOST=%s\nCORS_ORIGINS=%s\n' \
-  "$PB_ADMIN_EMAIL" "$PB_ADMIN_PASSWORD" "$API_HOST" "$PB_HOST" "$CORS_ORIGINS" \
+printf 'PB_ADMIN_EMAIL=%s\nPB_ADMIN_PASSWORD=%s\nAPI_HOST=%s\nPB_HOST=%s\nAPI_DEV_HOST=%s\nPB_DEV_HOST=%s\nCORS_ORIGINS=%s\n' \
+  "$PB_ADMIN_EMAIL" "$PB_ADMIN_PASSWORD" "$API_HOST" "$PB_HOST" "$API_DEV_HOST" "$PB_DEV_HOST" "$CORS_ORIGINS" \
   | $SSH 'umask 077; cat > /opt/charge/infra/oracle/.env'
 
 echo "→ building and starting (first build takes a few minutes)"
-$SSH "cd /opt/charge/infra/oracle && sudo docker compose up -d --build --remove-orphans && sleep 3 && \
+$SSH "cd /opt/charge/infra/oracle && (sudo docker network create charge-edge >/dev/null 2>&1 || true) && \
+  sudo docker compose up -d --build --remove-orphans && sleep 3 && \
   sudo docker compose exec -T pocketbase /pb/pocketbase superuser upsert '$PB_ADMIN_EMAIL' '$PB_ADMIN_PASSWORD' --dir /pb/pb_data >/dev/null"
 
 echo "→ configuring PocketBase"

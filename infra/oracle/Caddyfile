@@ -14,3 +14,21 @@
 	encode gzip
 	reverse_proxy pocketbase:8090
 }
+
+# The dev stack (docker-compose.dev.yml). Until it runs, these answer 502.
+{$API_DEV_HOST} {
+	encode gzip
+	request_body {
+		max_size 2GB
+	}
+	reverse_proxy dev-api:8080 {
+		transport http {
+			read_timeout 10m
+		}
+	}
+}
+
+{$PB_DEV_HOST} {
+	encode gzip
+	reverse_proxy dev-pocketbase:8090
+}

@@ -1,13 +1,16 @@
-# Test every push and pull request; deploy pushes to main.
-#   API: copy backend/, pocketbase/, infra/ to the Oracle VM and rebuild the containers.
-#        The VM keeps its own .env (PocketBase superuser login); CI never sees it.
-#   Web: deploy frontend/ to Vercel (the project's env vars live in Vercel).
+# Test every push and pull request; deploy pushes to main (live) and dev (testing).
+#   main -> /opt/charge on the Oracle VM (api.<host>, pb.<host>) and charge-bupa.vercel.app
+#   dev  -> /opt/charge-dev on the same VM (api-dev.<host>, pb-dev.<host>, its own accounts and data)
+#           and charge-bupa-dev.vercel.app
+#   API: copy backend/, pocketbase/, infra/ to the VM and rebuild the containers.
+#        The VM keeps each stack's .env (PocketBase superuser login); CI never sees it.
+#   Web: deploy frontend/ to Vercel (each project's env vars, i.e. which API it uses, live in Vercel).
 # Each deploy job skips itself, with a note, until its secrets are set (see README, "Continuous deployment").
 name: Test and deploy
 
 on:
   push:
-    branches: [main, production]
+    branches: [main, dev]
   pull_request:
   workflow_dispatch:
 
@@ -47,14 +50,15 @@ jobs:
 
   deploy-api:
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'dev')
     runs-on: ubuntu-latest
-    concurrency: deploy-api
+    concurrency: deploy-api-${{ github.ref_name }}
     env:
       HOST: ${{ secrets.DEPLOY_HOST }}
       SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
       KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
       API_URL: ${{ secrets.API_URL }}
+      DIR: ${{ github.ref_name == 'main' && '/opt/charge' || '/opt/charge-dev' }}
     steps:
       - id: ready
         run: |
@@ -68,40 +72,61 @@ jobs:
           install -m 700 -d ~/.ssh
           printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          echo "SSH=ssh -i $HOME/.ssh/deploy -o StrictHostKeyChecking=yes ubuntu@$HOST" >> "$GITHUB_ENV"
       - if: steps.ready.outputs.go
         name: Copy code
         run: |
+          $SSH "sudo install -d -o ubuntu -g ubuntu $DIR"
           rsync -az --delete -e "ssh -i ~/.ssh/deploy -o StrictHostKeyChecking=yes" \
             --exclude __pycache__ --exclude .pytest_cache --exclude pb_data --exclude '.terraform*' \
             --exclude '*.tfstate*' --exclude terraform.tfvars --exclude plan.out --exclude .env \
-            backend pocketbase infra "ubuntu@$HOST:/opt/charge/"
-      - if: steps.ready.outputs.go
-        name: Rebuild and restart
+            backend pocketbase infra "ubuntu@$HOST:$DIR/"
+      - if: steps.ready.outputs.go && github.ref_name == 'main'
+        name: Rebuild and restart (live)
         run: |
-          ssh -i ~/.ssh/deploy -o StrictHostKeyChecking=yes "ubuntu@$HOST" \
-            'cd /opt/charge/infra/oracle && test -f .env && sudo docker compose up -d --build --remove-orphans'
+          $SSH 'set -e; cd /opt/charge/infra/oracle && test -f .env
+            sudo docker network create charge-edge >/dev/null 2>&1 || true
+            # Older .env files predate the dev stack: give Caddy its host names, next to the live ones.
+            grep -q "^API_DEV_HOST=" .env || sed -n "s/^API_HOST=api\./API_DEV_HOST=api-dev./p" .env >> .env
+            grep -q "^PB_DEV_HOST=" .env || sed -n "s/^PB_HOST=pb\./PB_DEV_HOST=pb-dev./p" .env >> .env
+            sudo docker compose up -d --build --remove-orphans'
+      - if: steps.ready.outputs.go && github.ref_name == 'dev'
+        name: Rebuild and restart (dev)
+        run: |
+          $SSH 'set -e; cd /opt/charge-dev/infra/oracle
+            sudo docker network create charge-edge >/dev/null 2>&1 || true
+            if [ ! -f .env ]; then  # first deploy: a superuser login of its own, made and kept on the VM
+              (umask 077; printf "PB_ADMIN_EMAIL=admin@charge-dev.local\nPB_ADMIN_PASSWORD=%s\n" "$(openssl rand -hex 24)" > .env)
+            fi
+            set -a; . ./.env; set +a
+            sudo docker compose -f docker-compose.dev.yml up -d --build --remove-orphans
+            sleep 3
+            sudo docker compose -f docker-compose.dev.yml exec -T dev-pocketbase \
+              /pb/pocketbase superuser upsert "$PB_ADMIN_EMAIL" "$PB_ADMIN_PASSWORD" --dir /pb/pb_data >/dev/null'
       - if: steps.ready.outputs.go && env.API_URL != ''
         name: Health check
         run: |
-          for i in $(seq 1 30); do curl -fsS "$API_URL/api/health" && exit 0; sleep 10; done
-          echo "::error::API did not come back healthy"; exit 1
+          url="$API_URL"; [ "$GITHUB_REF_NAME" = dev ] && url="${url/:\/\/api./://api-dev.}"
+          for i in $(seq 1 30); do curl -fsS "$url/api/health" && exit 0; sleep 10; done
+          echo "::error::$url did not come back healthy"; exit 1
       - if: always()
         run: rm -f ~/.ssh/deploy
 
   deploy-web:
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'dev')
     runs-on: ubuntu-latest
-    concurrency: deploy-web
+    concurrency: deploy-web-${{ github.ref_name }}
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      # Not secret: the team "tibigg's projects", and charge-bupa (main) or charge-bupa-dev (dev).
+      VERCEL_ORG_ID: team_6xXVIFQZ74qnbRcdqlPeYEFG
+      VERCEL_PROJECT_ID: ${{ github.ref_name == 'main' && 'prj_C9N5eaNPtdhDdWAwCe6nDfA0vGeV' || 'prj_5BbcfNaRswLQMVIKUcQ9EsKXbU4w' }}
     steps:
       - id: ready
         run: |
-          if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then echo "go=true" >> "$GITHUB_OUTPUT"
-          else echo "::notice::Web deploy skipped: set VERCEL_TOKEN, VERCEL_ORG_ID and VERCEL_PROJECT_ID."; fi
+          if [ -n "$VERCEL_TOKEN" ]; then echo "go=true" >> "$GITHUB_OUTPUT"
+          else echo "::notice::Web deploy skipped: set VERCEL_TOKEN."; fi
       - if: steps.ready.outputs.go
         uses: actions/checkout@v7
       - if: steps.ready.outputs.go

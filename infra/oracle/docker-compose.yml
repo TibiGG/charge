@@ -1,5 +1,7 @@
 # Charge backend on the Oracle VM: Caddy (TLS) -> API + PocketBase.
-# Values come from /opt/charge/.env (made by deploy.sh; never committed).
+# Values come from /opt/charge/infra/oracle/.env (made by deploy.sh; never committed).
+# This Caddy also fronts the dev stack (docker-compose.dev.yml, from the `dev` branch) over the
+# shared `charge-edge` network: `docker network create charge-edge` once, before the first `up`.
 services:
   pocketbase:
     build: ../../pocketbase
@@ -29,12 +31,22 @@ services:
     environment:
       API_HOST: ${API_HOST}
       PB_HOST: ${PB_HOST}
+      API_DEV_HOST: ${API_DEV_HOST:-api-dev.localhost}
+      PB_DEV_HOST: ${PB_DEV_HOST:-pb-dev.localhost}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
+    networks:
+      - default
+      - edge
     depends_on:
       - api
       - pocketbase
+
+networks:
+  edge:
+    external: true
+    name: charge-edge
 
 volumes:
   pb_data:

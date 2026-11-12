@@ -127,13 +127,18 @@ first click); drop it to 0 to stop paying for an idle service.
 
 ## Production
 
-`charge-bupa.vercel.app` stays the hackathon demo. The production app deploys to
-**charge-bupa-dev.vercel.app** (`scripts/deploy-dev.sh`), backed by one Oracle Cloud
-Always Free VM running Caddy + the API + PocketBase (`infra/oracle/`).
+Two copies run, each with its own accounts and data:
+
+| Branch | Web | Backend (one Oracle Cloud Always Free VM: Caddy + API + PocketBase, `infra/oracle/`) |
+| --- | --- | --- |
+| `main` (live) | **charge-bupa.vercel.app** | `/opt/charge` → `api.<host>`, `pb.<host>` |
+| `dev` (testing) | charge-bupa-dev.vercel.app | `/opt/charge-dev` → `api-dev.<host>`, `pb-dev.<host>` (`docker-compose.dev.yml`) |
+
+Work on `dev`; merge to `main` to go live. The made-up demo people are still in the live app.
 
 Where it runs today: a small E2.1.Micro VM. London had no free A1 capacity; `infra/oracle/main.tf` +
 `grab-a1.sh` create a faster A1 VM when there is, and `deploy.sh <new-ip>` moves Charge there.
-Pushes to `main` test and deploy both halves (`.github/workflows/deploy.yml`, see below).
+Pushes to `main` and `dev` test and deploy both halves (`.github/workflows/deploy.yml`, see below).
 
 - **Accounts**: PocketBase (email + password; Google and Apple once their client ids are set).
   Bupa account association sits in *You* as a placeholder until there is a Bupa integration.
@@ -168,25 +173,28 @@ Pushes to `main` test and deploy both halves (`.github/workflows/deploy.yml`, se
 
 ```bash
 cd infra/oracle && terraform init && terraform apply   # the VM (once)
-infra/oracle/deploy.sh                                 # ship / update the backend
-scripts/deploy-dev.sh                                  # ship the web app
+infra/oracle/deploy.sh                                 # ship / update the live backend by hand
+scripts/deploy-dev.sh                                  # ship the dev web app by hand
 PB_BIN=/path/to/pocketbase make test                   # includes the signed-in journey
 ```
 
 ### Continuous deployment
 
-Every push and pull request runs the tests (`.github/workflows/deploy.yml`); a push to `main` then
-deploys. The API job copies `backend/`, `pocketbase/` and `infra/` to the VM and rebuilds the
-containers; the VM keeps its own `.env` (PocketBase superuser login), which CI never sees. The web job
-deploys `frontend/` to Vercel. Each deploy job is skipped, with a note, until its secrets are set:
+Every push and pull request runs the tests (`.github/workflows/deploy.yml`); a push to `main` or `dev`
+then deploys that branch's copy (table above). The API job copies `backend/`, `pocketbase/` and
+`infra/` to the VM and rebuilds the containers; each stack keeps its own `.env` on the VM (its
+PocketBase superuser login), which CI never sees. The dev one is made on the VM by the first `dev`
+deploy. The web job deploys `frontend/` to the branch's Vercel project; which API a site talks to is
+set by `PUBLIC_API_BASE` and `PUBLIC_PB_URL` in that Vercel project. Each deploy job is skipped, with a
+note, until its secrets are set:
 
 | Secret | What it is |
 | --- | --- |
 | `DEPLOY_HOST` | The VM's IP address or host name |
 | `DEPLOY_SSH_KEY` | A private key used only by CI; its public half is in `~ubuntu/.ssh/authorized_keys` on the VM |
 | `DEPLOY_KNOWN_HOSTS` | `ssh-keyscan <host>` output, so CI only talks to that VM |
-| `API_URL` | e.g. `https://api.<host>`, checked after each deploy |
-| `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` | A Vercel token, and the ids in `scripts/deploy-dev.sh` |
+| `API_URL` | The live API, e.g. `https://api.<host>`, checked after each deploy (dev: `api-dev.<host>`) |
+| `VERCEL_TOKEN` | A Vercel token for the team that owns both projects (their ids are in the workflow) |
 
 Secrets live in `~/.config/charge/oracle.env` (made by `deploy.sh`), never in the repo.
 
