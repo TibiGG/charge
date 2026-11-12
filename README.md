@@ -194,8 +194,8 @@ note, until its secrets are set:
 | `DEPLOY_SSH_KEY` | A private key used only by CI; its public half is in `~ubuntu/.ssh/authorized_keys` on the VM |
 | `DEPLOY_KNOWN_HOSTS` | `ssh-keyscan <host>` output, so CI only talks to that VM |
 | `API_URL` | The live API, e.g. `https://api.<host>`, checked after each deploy (dev: `api-dev.<host>`) |
-| `VERCEL_TOKEN` | A Vercel token limited to the live project, `charge-bupa` (the project ids are in the workflow) |
-| `VERCEL_DEV_TOKEN` | A Vercel token limited to the dev project, `charge-bupa-dev` |
+| `VERCEL_TOKEN` | A Vercel token for the team that owns both projects (the project ids are in the workflow) |
+| `VERCEL_DEV_TOKEN` | Optional: a token limited to `charge-bupa-dev`, used for dev; `VERCEL_TOKEN` can then be limited to `charge-bupa` |
 
 Secrets live in `~/.config/charge/oracle.env` (made by `deploy.sh`), never in the repo.
 
