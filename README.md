@@ -12,7 +12,7 @@ suggestion for the morning, afternoon and evening — and every suggestion carri
 
 | | |
 |---|---|
-| App | https://charge-bupa.vercel.app (live, from `main`) · https://charge-bupa-dev.vercel.app (from `dev`) |
+| App | https://charge-health.vercel.app (live, from `main`) · https://charge-health-dev.vercel.app (from `dev`) |
 | API | One Oracle Cloud VM (see [Production](#production)) |
 | Demo script | [`DEMO.md`](DEMO.md) |
 | Backup screenshots | [`docs/demo-shots/`](docs/demo-shots) |
@@ -131,8 +131,8 @@ Two copies run, each with its own accounts and data:
 
 | Branch | Web | Backend (one Oracle Cloud Always Free VM: Caddy + API + PocketBase, `infra/oracle/`) |
 | --- | --- | --- |
-| `main` (live) | **charge-bupa.vercel.app** | `/opt/charge` → `api.<host>`, `pb.<host>` |
-| `dev` (testing) | charge-bupa-dev.vercel.app | `/opt/charge-dev` → `api-dev.<host>`, `pb-dev.<host>` (`docker-compose.dev.yml`) |
+| `main` (live) | **charge-health.vercel.app** | `/opt/charge` → `api.<host>`, `pb.<host>` |
+| `dev` (testing) | charge-health-dev.vercel.app | `/opt/charge-dev` → `api-dev.<host>`, `pb-dev.<host>` (`docker-compose.dev.yml`) |
 
 Work on `dev`; merge to `main` to go live. The made-up demo people are still in the live app.
 
@@ -195,7 +195,7 @@ note, until its secrets are set:
 | `DEPLOY_KNOWN_HOSTS` | `ssh-keyscan <host>` output, so CI only talks to that VM |
 | `API_URL` | The live API, e.g. `https://api.<host>`, checked after each deploy (dev: `api-dev.<host>`) |
 | `VERCEL_TOKEN` | A Vercel token for the team that owns both projects (the project ids are in the workflow) |
-| `VERCEL_DEV_TOKEN` | Optional: a token limited to `charge-bupa-dev`, used for dev; `VERCEL_TOKEN` can then be limited to `charge-bupa` |
+| `VERCEL_DEV_TOKEN` | Optional: a token limited to `charge-health-dev`, used for dev; `VERCEL_TOKEN` can then be limited to `charge-health` |
 
 Secrets live in `~/.config/charge/oracle.env` (made by `deploy.sh`), never in the repo.
 

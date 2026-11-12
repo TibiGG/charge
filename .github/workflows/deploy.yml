@@ -1,7 +1,7 @@
 # Test every push and pull request; deploy pushes to main (live) and dev (testing).
-#   main -> /opt/charge on the Oracle VM (api.<host>, pb.<host>) and charge-bupa.vercel.app
+#   main -> /opt/charge on the Oracle VM (api.<host>, pb.<host>) and charge-health.vercel.app
 #   dev  -> /opt/charge-dev on the same VM (api-dev.<host>, pb-dev.<host>, its own accounts and data)
-#           and charge-bupa-dev.vercel.app
+#           and charge-health-dev.vercel.app
 #   API: copy backend/, pocketbase/, infra/ to the VM and rebuild the containers.
 #        The VM keeps each stack's .env (PocketBase superuser login); CI never sees it.
 #   Web: deploy frontend/ to Vercel (each project's env vars, i.e. which API it uses, live in Vercel).
@@ -118,10 +118,10 @@ jobs:
     runs-on: ubuntu-latest
     concurrency: deploy-web-${{ github.ref_name }}
     env:
-      # One team-wide token does both. Optionally, VERCEL_DEV_TOKEN (a token limited to charge-bupa-dev)
-      # is used for dev instead, and VERCEL_TOKEN can then be limited to charge-bupa.
+      # One team-wide token does both. Optionally, VERCEL_DEV_TOKEN (a token limited to charge-health-dev)
+      # is used for dev instead, and VERCEL_TOKEN can then be limited to charge-health.
       VERCEL_TOKEN: ${{ github.ref_name == 'dev' && secrets.VERCEL_DEV_TOKEN || secrets.VERCEL_TOKEN }}
-      # Not secret: the team "tibigg's projects", and charge-bupa (main) or charge-bupa-dev (dev).
+      # Not secret: the team "tibigg's projects", and charge-health (main) or charge-health-dev (dev).
       VERCEL_ORG_ID: team_6xXVIFQZ74qnbRcdqlPeYEFG
       VERCEL_PROJECT_ID: ${{ github.ref_name == 'main' && 'prj_C9N5eaNPtdhDdWAwCe6nDfA0vGeV' || 'prj_5BbcfNaRswLQMVIKUcQ9EsKXbU4w' }}
     steps:

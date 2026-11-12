@@ -28,7 +28,7 @@ API_HOST="${API_HOST:-api.$BASE}"
 PB_HOST="${PB_HOST:-pb.$BASE}"
 API_DEV_HOST="${API_DEV_HOST:-api-dev.$BASE}"
 PB_DEV_HOST="${PB_DEV_HOST:-pb-dev.$BASE}"
-CORS_ORIGINS="${CORS_ORIGINS:-https://charge-bupa.vercel.app}"
+CORS_ORIGINS="${CORS_ORIGINS:-https://charge-health.vercel.app}"
 
 echo "→ waiting for cloud-init on $IP"
 $SSH 'cloud-init status --wait >/dev/null 2>&1 || true; docker --version'

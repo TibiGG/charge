@@ -5,7 +5,7 @@ make demo          # API :8000 + UI :5173
 make test          # the 5 judged constraints, as tests
 ```
 
-Open **http://localhost:5173/?p=margaret** (or the deployed https://charge-bupa.vercel.app).
+Open **http://localhost:5173/?p=margaret** (or the deployed https://charge-health.vercel.app).
 
 ---
 
