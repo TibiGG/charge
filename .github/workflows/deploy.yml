@@ -118,7 +118,9 @@ jobs:
     runs-on: ubuntu-latest
     concurrency: deploy-web-${{ github.ref_name }}
     env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      # One token per project (Vercel can limit a token to one project), so dev can't deploy live.
+      VERCEL_TOKEN: ${{ github.ref_name == 'main' && secrets.VERCEL_TOKEN || secrets.VERCEL_DEV_TOKEN }}
+      TOKEN_NAME: ${{ github.ref_name == 'main' && 'VERCEL_TOKEN' || 'VERCEL_DEV_TOKEN' }}
       # Not secret: the team "tibigg's projects", and charge-bupa (main) or charge-bupa-dev (dev).
       VERCEL_ORG_ID: team_6xXVIFQZ74qnbRcdqlPeYEFG
       VERCEL_PROJECT_ID: ${{ github.ref_name == 'main' && 'prj_C9N5eaNPtdhDdWAwCe6nDfA0vGeV' || 'prj_5BbcfNaRswLQMVIKUcQ9EsKXbU4w' }}
@@ -126,7 +128,7 @@ jobs:
       - id: ready
         run: |
           if [ -n "$VERCEL_TOKEN" ]; then echo "go=true" >> "$GITHUB_OUTPUT"
-          else echo "::notice::Web deploy skipped: set VERCEL_TOKEN."; fi
+          else echo "::notice::Web deploy skipped: set $TOKEN_NAME."; fi
       - if: steps.ready.outputs.go
         uses: actions/checkout@v7
       - if: steps.ready.outputs.go
