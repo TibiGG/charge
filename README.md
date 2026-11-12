@@ -199,6 +199,19 @@ note, until its secrets are set:
 
 Secrets live in `~/.config/charge/oracle.env` (made by `deploy.sh`), never in the repo.
 
+### Admin
+
+Caddy never serves PocketBase's admin pages or superuser login to the internet (`infra/oracle/caddy/Caddyfile`);
+PocketBase listens for them on the VM's own `127.0.0.1` only. To open them, tunnel in with a key the VM
+accepts, then browse to `http://localhost:8090/_/` (live) or `http://localhost:8091/_/` (dev):
+
+```bash
+ssh -i <your key> -L 8090:127.0.0.1:8090 -L 8091:127.0.0.1:8091 ubuntu@<host>
+```
+
+The live login is in `~/.config/charge/oracle.env`; the dev one is in `/opt/charge-dev/infra/oracle/.env`
+on the VM. PocketBase settings are applied from inside the VM: `deploy.sh` for live, CI for dev.
+
 ## Layout
 
 ```

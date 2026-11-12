@@ -13,6 +13,8 @@ services:
     mem_limit: 150m
     volumes:
       - pb_data:/pb/pb_data
+    ports:
+      - "127.0.0.1:8091:8090"  # the admin pages, over an SSH tunnel only (Caddy blocks them)
     networks:
       - default
       - edge

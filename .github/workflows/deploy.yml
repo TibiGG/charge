@@ -89,7 +89,11 @@ jobs:
             # Older .env files predate the dev stack: give Caddy its host names, next to the live ones.
             grep -q "^API_DEV_HOST=" .env || sed -n "s/^API_HOST=api\./API_DEV_HOST=api-dev./p" .env >> .env
             grep -q "^PB_DEV_HOST=" .env || sed -n "s/^PB_HOST=pb\./PB_DEV_HOST=pb-dev./p" .env >> .env
-            sudo docker compose up -d --build --remove-orphans'
+            # A broken Caddyfile stops here, before anything live changes.
+            sudo docker run --rm --env-file .env -v "$PWD/caddy:/etc/caddy:ro" caddy:2 \
+              caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+            sudo docker compose up -d --build --remove-orphans
+            sudo docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile'
       - if: steps.ready.outputs.go && github.ref_name == 'dev'
         name: Rebuild and restart (dev)
         run: |
@@ -102,7 +106,10 @@ jobs:
             sudo docker compose -f docker-compose.dev.yml up -d --build --remove-orphans
             sleep 3
             sudo docker compose -f docker-compose.dev.yml exec -T dev-pocketbase \
-              /pb/pocketbase superuser upsert "$PB_ADMIN_EMAIL" "$PB_ADMIN_PASSWORD" --dir /pb/pb_data >/dev/null'
+              /pb/pocketbase superuser upsert "$PB_ADMIN_EMAIL" "$PB_ADMIN_PASSWORD" --dir /pb/pb_data >/dev/null
+            PB_DEV_HOST=$(sed -n "s/^PB_DEV_HOST=//p" /opt/charge/infra/oracle/.env)
+            sudo docker compose -f docker-compose.dev.yml exec -T -e PB_URL=http://dev-pocketbase:8090 \
+              -e PB_APP_URL="https://$PB_DEV_HOST" dev-api python - < configure_pb.py'
       - if: steps.ready.outputs.go && env.API_URL != ''
         name: Health check
         run: |

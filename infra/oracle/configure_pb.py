@@ -1,7 +1,8 @@
-"""Apply PocketBase settings from the environment (idempotent). Called by deploy.sh.
+"""Apply PocketBase settings from the environment (idempotent). Run inside the API container on the
+VM (deploy.sh for live, CI for dev), because the superuser login isn't reachable from the internet.
 
-Needs PB_URL, PB_ADMIN_EMAIL, PB_ADMIN_PASSWORD. Optional: SMTP_*, GOOGLE_*, APPLE_*.
-Standard library only, so it runs anywhere deploy.sh does.
+Needs PB_URL (the internal address), PB_ADMIN_EMAIL, PB_ADMIN_PASSWORD. Optional: PB_APP_URL (the
+public address, for links in emails), SMTP_*, GOOGLE_*, APPLE_*. Standard library only.
 """
 import json
 import os
@@ -21,7 +22,7 @@ token = call("POST", "/api/collections/_superusers/auth-with-password",
              {"identity": os.environ["PB_ADMIN_EMAIL"], "password": os.environ["PB_ADMIN_PASSWORD"]})["token"]
 
 settings = {
-    "meta": {"appName": "Charge", "appURL": URL, "senderName": "Charge",
+    "meta": {"appName": "Charge", "appURL": os.environ.get("PB_APP_URL", URL), "senderName": "Charge",
              "senderAddress": os.environ.get("SMTP_SENDER", "no-reply@charge.local")},
     # Nightly backups on the VM's disk, 14 kept (Settings -> Backups to download one).
     "backups": {"cron": "0 3 * * *", "cronMaxKeep": 14},

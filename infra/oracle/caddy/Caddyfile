@@ -1,3 +1,10 @@
+# PocketBase's admin pages and superuser login are never served to the internet, by name or by id
+# (pbc_3142635823 is _superusers). Reach them over SSH instead: README, "Admin".
+(admin_locked) {
+	@admin path /_ /_/* /api/collections/_* /api/collections/pbc_3142635823/*
+	respond @admin 404
+}
+
 {$API_HOST} {
 	encode gzip
 	request_body {
@@ -12,6 +19,7 @@
 
 {$PB_HOST} {
 	encode gzip
+	import admin_locked
 	reverse_proxy pocketbase:8090
 }
 
@@ -30,5 +38,6 @@
 
 {$PB_DEV_HOST} {
 	encode gzip
+	import admin_locked
 	reverse_proxy dev-pocketbase:8090
 }

@@ -8,6 +8,8 @@ services:
     restart: unless-stopped
     volumes:
       - pb_data:/pb/pb_data
+    ports:
+      - "127.0.0.1:8090:8090"  # the admin pages, over an SSH tunnel only (Caddy blocks them)
 
   api:
     build: ../../backend
@@ -34,7 +36,7 @@ services:
       API_DEV_HOST: ${API_DEV_HOST:-api-dev.localhost}
       PB_DEV_HOST: ${PB_DEV_HOST:-pb-dev.localhost}
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy:/etc/caddy:ro  # a folder, so `caddy reload` sees a new Caddyfile
       - caddy_data:/data
     networks:
       - default
