@@ -12,14 +12,14 @@ suggestion for the morning, afternoon and evening — and every suggestion carri
 
 | | |
 |---|---|
-| App | https://charge-bupa.vercel.app |
-| API | https://charge-api-845717888369.europe-west2.run.app (Google Cloud Run, `europe-west2`) |
+| App | https://charge-bupa.vercel.app (live, from `main`) · https://charge-bupa-dev.vercel.app (from `dev`) |
+| API | One Oracle Cloud VM (see [Production](#production)) |
 | Demo script | [`DEMO.md`](DEMO.md) |
 | Backup screenshots | [`docs/demo-shots/`](docs/demo-shots) |
 | Demo capture | `demo.mp4` |
 
-> The hosted links depend on a hackathon lab GCP project and may be switched off. Everything runs
-> locally with `make demo`.
+> At the hackathon the API ran on Google Cloud Run in a lab project, since deleted; `make deploy-api`
+> below is kept for the record. Everything runs locally with `make demo`.
 
 ---
 
